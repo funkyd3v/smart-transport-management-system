@@ -7,11 +7,6 @@
 
     <div class="hero-inner">
         <div>
-            <div class="hero-badge reveal">
-                <div class="hero-badge-dot"></div>
-                <span>Next-Gen Transport Management</span>
-            </div>
-
             <h1 class="hero-h1 reveal" style="transition-delay: 0.08s;">
                 Drive Your<br>Business<br><span class="text-gradient">Forward</span>
             </h1>

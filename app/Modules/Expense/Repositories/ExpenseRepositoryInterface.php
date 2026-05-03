@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Modules\Expense\Repositories;
+
+interface ExpenseRepositoryInterface
+{
+    public function all();
+
+    public function findByUlid(string $ulid);
+
+    public function create(array $data);
+
+    public function update(string $ulid, array $data);
+
+    public function delete(string $ulid);
+}
