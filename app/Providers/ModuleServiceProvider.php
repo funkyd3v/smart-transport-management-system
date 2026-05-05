@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use Illuminate\Support\Facades\File;
@@ -30,6 +32,13 @@ class ModuleServiceProvider extends ServiceProvider
     public function boot(): void
     {
         foreach (File::directories(app_path('Modules')) as $modulePath) {
+            $moduleName = basename($modulePath);
+            $moduleProviderPath = $modulePath.'/Providers/'.$moduleName.'ServiceProvider.php';
+
+            if (File::exists($moduleProviderPath)) {
+                continue;
+            }
+
             $webRoutesPath = $modulePath.'/Routes/web.php';
             $apiRoutesPath = $modulePath.'/Routes/api.php';
 

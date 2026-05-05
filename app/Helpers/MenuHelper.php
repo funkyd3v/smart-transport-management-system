@@ -1,0 +1,92 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Helpers;
+
+class MenuHelper
+{
+    /**
+     * @return array<int, array{
+     *     title: string,
+     *     items: array<int, array{
+     *         name: string,
+     *         icon: string,
+     *         path?: string,
+     *         new?: bool,
+     *         pro?: bool,
+     *         subItems?: array<int, array{
+     *             name: string,
+     *             path: string,
+     *             new?: bool,
+     *             pro?: bool
+     *         }>
+     *     }>
+     * }>
+     */
+    public static function getMenuGroups(): array
+    {
+        return [
+            [
+                'title' => 'Main Menu',
+                'items' => [
+                    [
+                        'name' => 'Dashboard',
+                        'icon' => 'dashboard',
+                        'path' => route('admin.dashboard'),
+                    ],
+                ],
+            ],
+            [
+                'title' => 'Operations',
+                'items' => [
+                    [
+                        'name' => 'Managers',
+                        'icon' => 'users',
+                        'path' => route('manager.dashboard'),
+                    ],
+                    [
+                        'name' => 'Drivers',
+                        'icon' => 'truck',
+                        'path' => route('driver.dashboard'),
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public static function getIconSvg(string $icon): string
+    {
+        return match ($icon) {
+            'dashboard' => <<<'SVG'
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M7.5 2.5H3.75C3.05964 2.5 2.5 3.05964 2.5 3.75V8.75C2.5 9.44036 3.05964 10 3.75 10H7.5C8.19036 10 8.75 9.44036 8.75 8.75V3.75C8.75 3.05964 8.19036 2.5 7.5 2.5Z" fill="currentColor"/>
+                    <path d="M16.25 2.5H12.5C11.8096 2.5 11.25 3.05964 11.25 3.75V6.25C11.25 6.94036 11.8096 7.5 12.5 7.5H16.25C16.9404 7.5 17.5 6.94036 17.5 6.25V3.75C17.5 3.05964 16.9404 2.5 16.25 2.5Z" fill="currentColor"/>
+                    <path d="M16.25 10H12.5C11.8096 10 11.25 10.5596 11.25 11.25V16.25C11.25 16.9404 11.8096 17.5 12.5 17.5H16.25C16.9404 17.5 17.5 16.9404 17.5 16.25V11.25C17.5 10.5596 16.9404 10 16.25 10Z" fill="currentColor"/>
+                    <path d="M7.5 12.5H3.75C3.05964 12.5 2.5 13.0596 2.5 13.75V16.25C2.5 16.9404 3.05964 17.5 3.75 17.5H7.5C8.19036 17.5 8.75 16.9404 8.75 16.25V13.75C8.75 13.0596 8.19036 12.5 7.5 12.5Z" fill="currentColor"/>
+                </svg>
+            SVG,
+            'users' => <<<'SVG'
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M6.25 9.16667C7.86083 9.16667 9.16667 7.86083 9.16667 6.25C9.16667 4.63917 7.86083 3.33333 6.25 3.33333C4.63917 3.33333 3.33333 4.63917 3.33333 6.25C3.33333 7.86083 4.63917 9.16667 6.25 9.16667Z" fill="currentColor"/>
+                    <path d="M13.75 8.33333C15.131 8.33333 16.25 7.21405 16.25 5.83333C16.25 4.45262 15.131 3.33333 13.75 3.33333C12.3693 3.33333 11.25 4.45262 11.25 5.83333C11.25 7.21405 12.3693 8.33333 13.75 8.33333Z" fill="currentColor"/>
+                    <path d="M6.25 10.8333C3.94881 10.8333 2.08333 12.6988 2.08333 15V15.4167C2.08333 16.107 2.64298 16.6667 3.33333 16.6667H9.16667C9.85702 16.6667 10.4167 16.107 10.4167 15.4167V15C10.4167 12.6988 8.55119 10.8333 6.25 10.8333Z" fill="currentColor"/>
+                    <path d="M13.75 10.8333C12.9648 10.8333 12.2242 11.0242 11.5725 11.3622C12.1184 12.3499 12.4214 13.485 12.4214 14.6667V15.8333H16.6667C17.357 15.8333 17.9167 15.2737 17.9167 14.5833C17.9167 12.5123 15.8211 10.8333 13.75 10.8333Z" fill="currentColor"/>
+                </svg>
+            SVG,
+            'truck' => <<<'SVG'
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M2.5 5C2.5 4.07953 3.24619 3.33333 4.16667 3.33333H11.6667C12.5871 3.33333 13.3333 4.07953 13.3333 5V11.6667H2.5V5Z" fill="currentColor"/>
+                    <path d="M13.3333 6.66667H15.5059C16.0192 6.66667 16.5002 6.92222 16.788 7.34818L18.1154 9.31293C18.2943 9.57775 18.3898 9.89018 18.3898 10.2098V11.6667H13.3333V6.66667Z" fill="currentColor"/>
+                    <path d="M5.83333 16.6667C6.98393 16.6667 7.91667 15.7339 7.91667 14.5833C7.91667 13.4327 6.98393 12.5 5.83333 12.5C4.68274 12.5 3.75 13.4327 3.75 14.5833C3.75 15.7339 4.68274 16.6667 5.83333 16.6667Z" fill="currentColor"/>
+                    <path d="M15 16.6667C16.1506 16.6667 17.0833 15.7339 17.0833 14.5833C17.0833 13.4327 16.1506 12.5 15 12.5C13.8494 12.5 12.9167 13.4327 12.9167 14.5833C12.9167 15.7339 13.8494 16.6667 15 16.6667Z" fill="currentColor"/>
+                </svg>
+            SVG,
+            default => <<<'SVG'
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <circle cx="10" cy="10" r="7.5" fill="currentColor"/>
+                </svg>
+            SVG,
+        };
+    }
+}

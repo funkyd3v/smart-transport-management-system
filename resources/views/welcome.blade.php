@@ -1,6 +1,6 @@
 @extends('layouts.site')
 
-@section('title', 'Home')
+@section('title', 'Dashboard')
 
 @push('styles')
     <x-landing.styles />
