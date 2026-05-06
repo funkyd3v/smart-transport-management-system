@@ -6,6 +6,19 @@
     // Get current path
     $currentPath = request()->path();
 @endphp
+@once
+    <style>
+        @keyframes gradient {
+            0% {
+                background-position: 0% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+    </style>
+@endonce
 
 <aside id="sidebar"
     class="fixed flex flex-col mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-99999 border-r border-gray-200"
@@ -59,20 +72,18 @@
     @mouseenter="if (!$store.sidebar.isExpanded) $store.sidebar.setHovered(true)"
     @mouseleave="$store.sidebar.setHovered(false)">
     <!-- Logo Section -->
-    <div class="pt-8 pb-7 flex"
-        :class="(!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen) ?
-        'xl:justify-center' :
+    <div class="pt-8 pb-7 flex overflow-hidden"
+        :class="(!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen) ? 
+        'xl:justify-center' : 
         'justify-start'">
-        <a href="/">
-            <img x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen"
-                class="dark:hidden" src="/images/logo/logo.svg" alt="Logo" width="150" height="40" />
-            <img x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen"
-                class="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Logo" width="150"
-                height="40" />
-            <img x-show="!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen"
-                src="/images/logo/logo-icon.svg" alt="Logo" width="32" height="32" />
-
-        </a>
+        
+        <h1 class="text-3xl font-black tracking-tighter uppercase select-none">
+            <span class="inline-block bg-gradient-to-r from-[#DF7F07] via-[#FFD199] to-[#DF7F07] 
+                        bg-[length:200%_auto] bg-clip-text text-transparent 
+                        animate-[gradient_3s_linear_infinite]">
+                TransCorp
+            </span>
+        </h1>
     </div>
 
     <!-- Navigation Menu -->
