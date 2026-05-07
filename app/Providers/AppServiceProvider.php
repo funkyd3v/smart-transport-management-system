@@ -1,7 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
+use App\Contracts\MenuProviderInterface;
+use App\Menu\MenuResolver;
+use App\Modules\Trip\Models\Trip;
+use App\Policies\TripPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +18,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(MenuProviderInterface::class, function () {
+            return MenuResolver::resolve((string) request()->segment(1));
+        });
     }
 
     /**
@@ -19,6 +28,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(Trip::class, TripPolicy::class);
     }
 }

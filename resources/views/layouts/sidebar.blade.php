@@ -1,7 +1,7 @@
 
 @php
     use App\Helpers\MenuHelper;
-    $menuGroups = MenuHelper::getMenuGroups();
+    $menuGroups = app(\App\Contracts\MenuProviderInterface::class)->getGroups();
 
     // Get current path
     $currentPath = request()->path();

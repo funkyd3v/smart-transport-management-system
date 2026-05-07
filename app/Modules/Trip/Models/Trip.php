@@ -1,17 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trip\Models;
 
 use App\Modules\Auth\Models\User;
 use App\Modules\Client\Models\Client;
 use App\Modules\Driver\Models\Driver;
-use App\Modules\Due\Models\DueRecord;
-use App\Modules\Expense\Models\TripExpense;
-use App\Modules\Invoice\Models\Invoice;
-use App\Modules\Notification\Models\Notification;
-use App\Modules\Payment\Models\Payment;
 use App\Modules\Shared\Traits\HasUlid;
+use App\Modules\Trip\Enums\TripStatus as TripStatusEnum;
 use App\Modules\Truck\Models\Truck;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,7 +19,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Trip extends Model
 {
-    use HasUlid, SoftDeletes;
+    use HasUlid;
+    use SoftDeletes;
+
+    protected $table = 'trips';
 
     protected $fillable = [
         'ulid',
@@ -81,7 +83,7 @@ class Trip extends Model
         return $this->belongsTo(Driver::class);
     }
 
-    public function createdBy(): BelongsTo
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
@@ -91,38 +93,91 @@ class Trip extends Model
         return $this->belongsTo(TripStatus::class, 'status_id');
     }
 
-    public function invoice(): HasOne
+    public function goods(): HasMany
     {
-        return $this->hasOne(Invoice::class);
+        return $this->hasMany(TripGoods::class, 'trip_id');
     }
 
-    public function tripExpenses(): HasMany
+    public function invoice(): HasOne
     {
-        return $this->hasMany(TripExpense::class);
+        return $this->hasOne(Invoice::class, 'trip_id');
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(TripExpense::class, 'trip_id');
     }
 
     public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payment::class, 'trip_id');
     }
 
     public function dueRecord(): HasOne
     {
-        return $this->hasOne(DueRecord::class);
+        return $this->hasOne(DueRecord::class, 'trip_id');
     }
 
     public function reloadHistory(): HasMany
     {
-        return $this->hasMany(ReloadHistory::class);
-    }
-
-    public function tripGoods(): HasMany
-    {
-        return $this->hasMany(TripGoods::class);
+        return $this->hasMany(ReloadHistory::class, 'trip_id');
     }
 
     public function notifications(): HasMany
     {
-        return $this->hasMany(Notification::class);
+        return $this->hasMany(TripNotification::class, 'trip_id');
+    }
+
+    public function scopeStatus(Builder $query, ?int $statusId): Builder
+    {
+        if ($statusId === null) {
+            return $query;
+        }
+
+        return $query->where('status_id', $statusId);
+    }
+
+    public function scopeClient(Builder $query, ?int $clientId): Builder
+    {
+        if ($clientId === null) {
+            return $query;
+        }
+
+        return $query->where('client_id', $clientId);
+    }
+
+    public function scopeDriver(Builder $query, ?int $driverId): Builder
+    {
+        if ($driverId === null) {
+            return $query;
+        }
+
+        return $query->where('driver_id', $driverId);
+    }
+
+    public function isInvoiced(): bool
+    {
+        return $this->invoice_generated_at !== null;
+    }
+
+    public function canAddExpense(): bool
+    {
+        return in_array($this->status?->name, [TripStatusEnum::InTransit->value, TripStatusEnum::Completed->value], true);
+    }
+
+    public function canTransitionTo(TripStatusEnum $toStatus): bool
+    {
+        $current = TripStatusEnum::tryFrom((string) $this->status?->name);
+
+        if ($current === null) {
+            return false;
+        }
+
+        return in_array($toStatus, $current->allowedNextStatuses(), true);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'ulid';
     }
 }

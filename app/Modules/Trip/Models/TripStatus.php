@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trip\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -9,15 +11,12 @@ class TripStatus extends Model
 {
     public $timestamps = false;
 
+    protected $table = 'trip_statuses';
+
     protected $fillable = [
         'name',
         'description',
     ];
-
-    protected function casts(): array
-    {
-        return [];
-    }
 
     public function trips(): HasMany
     {

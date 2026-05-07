@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trip\Models;
 
 use App\Modules\Driver\Models\Driver;
@@ -9,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReloadHistory extends Model
 {
-    public const UPDATED_AT = null;
+    public $timestamps = false;
+
+    protected $table = 'reload_history';
 
     protected $fillable = [
         'trip_id',
@@ -18,12 +22,14 @@ class ReloadHistory extends Model
         'reload_point',
         'reloaded_at',
         'note',
+        'created_at',
     ];
 
     protected function casts(): array
     {
         return [
             'reloaded_at' => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 

@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Policies;
+
+use App\Modules\Auth\Models\User;
+use App\Modules\Trip\Models\Trip;
+
+class TripPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return $this->hasRole($user, ['admin', 'manager', 'driver']);
+    }
+
+    public function view(User $user, Trip $trip): bool
+    {
+        if ($this->hasRole($user, ['admin', 'manager'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) $user->driver?->id;
+    }
+
+    public function create(User $user): bool
+    {
+        return $this->hasRole($user, ['admin', 'manager']);
+    }
+
+    public function update(User $user, Trip $trip): bool
+    {
+        if ($this->hasRole($user, ['admin', 'manager'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) $user->driver?->id;
+    }
+
+    public function delete(User $user, Trip $trip): bool
+    {
+        return $this->hasRole($user, ['admin', 'manager']);
+    }
+
+    public function generateInvoice(User $user, Trip $trip): bool
+    {
+        return $this->hasRole($user, ['admin', 'manager']) && ! $trip->isInvoiced();
+    }
+
+    public function recordPayment(User $user, Trip $trip): bool
+    {
+        return $this->hasRole($user, ['admin', 'manager']);
+    }
+
+    /**
+     * @param  list<string>  $roles
+     */
+    private function hasRole(User $user, array $roles): bool
+    {
+        return in_array((string) $user->role?->name, $roles, true);
+    }
+}
