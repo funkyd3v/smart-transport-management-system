@@ -47,11 +47,19 @@ class DriverController extends Controller
 
     public function store(StoreDriverRequest $request): JsonResponse
     {
-        $this->driverService->create($request);
+        $driver = $this->driverService->create($request);
 
         return response()->json([
             'message' => 'Driver created successfully.',
-        ]);
+            'driver' => [
+                'id' => $driver->id,
+                'name' => $driver->name,
+            ],
+            'credentials' => [
+                'email' => $request->validated()['email'],
+                'password' => $request->validated()['password'],
+            ],
+        ], 201);
     }
 
     public function show(Driver $driver): View

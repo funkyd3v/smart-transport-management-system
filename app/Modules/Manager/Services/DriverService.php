@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Manager\Services;
 
+use App\Modules\Auth\Models\User;
 use App\Modules\Driver\Models\Driver;
 use App\Modules\Manager\Repositories\Driver\DriverRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DriverService
@@ -17,19 +20,46 @@ class DriverService
 
     public function create(Request $request): Driver
     {
-        $data = method_exists($request, 'validated') ? $request->validated() : [];
+        return DB::transaction(function () use ($request): Driver {
+            $validated = method_exists($request, 'validated') ? $request->validated() : [];
 
-        if ((string) ($request->user()?->role ?? '') !== 'admin') {
-            unset($data['is_approved']);
-        }
+            if ((string) ($request->user()?->role ?? '') !== 'admin') {
+                unset($validated['is_approved']);
+            }
 
-        $driver = $this->driverRepository->create($data);
+            $status = (string) ($validated['status'] ?? 'active');
+            $isApproved = (bool) ($validated['is_approved'] ?? false);
+            $plainPassword = (string) ($validated['password'] ?? '');
+            $approvedBy = $request->user()?->getAuthIdentifier();
 
-        if ($request->hasFile('image')) {
-            $driver->addMediaFromRequest('image')->toMediaCollection('avatar');
-        }
+            $user = User::query()->create([
+                'name' => (string) ($validated['name'] ?? 'Driver'),
+                'email' => (string) ($validated['email'] ?? ''),
+                'phone' => (string) ($validated['mobile_number'] ?? ''),
+                'password_hash' => Hash::make($plainPassword),
+                'role' => 'driver',
+                'is_active' => $status === 'active',
+                'approved_by' => $isApproved ? $approvedBy : null,
+                'approved_at' => $isApproved ? now() : null,
+            ]);
 
-        return $driver->refresh();
+            $driver = new Driver;
+            $driver->forceFill([
+                'user_id' => $user->id,
+                'license_number' => $validated['license_number'] ?? null,
+                'nid_number' => $validated['nid_number'] ?? null,
+                'driving_type' => $validated['driving_type'] ?? null,
+                'joining_date' => $validated['joining_date'] ?? null,
+                'is_available' => $status === 'active',
+            ]);
+            $driver->save();
+
+            if ($request->hasFile('image')) {
+                $driver->addMediaFromRequest('image')->toMediaCollection('avatar');
+            }
+
+            return $driver->refresh();
+        });
     }
 
     public function update(Driver $driver, Request $request): Driver

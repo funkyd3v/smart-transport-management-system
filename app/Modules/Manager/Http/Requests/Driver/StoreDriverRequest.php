@@ -21,6 +21,10 @@ class StoreDriverRequest extends FormRequest
             $sanitized[$key] = is_string($value) ? strip_tags(trim($value)) : $value;
         }
 
+        if (array_key_exists('email', $sanitized) && is_string($sanitized['email'])) {
+            $sanitized['email'] = strtolower(trim($sanitized['email']));
+        }
+
         $this->merge($sanitized);
     }
 
@@ -31,6 +35,8 @@ class StoreDriverRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
             'mobile_number' => ['required', 'regex:/^01[3-9]\d{8}$/'],
             'license_number' => ['required', 'string', 'max:100', 'unique:drivers,license_number'],
             'nid_number' => ['required', 'string', 'max:100', 'unique:drivers,nid_number'],
