@@ -23,9 +23,9 @@ final class TripInvoiceController extends Controller
         $this->authorize('generateInvoice', $trip);
 
         $dto = GenerateInvoiceDTO::fromRequest($request);
-        $invoice = ($this->generateInvoice)($dto);
+        ($this->generateInvoice)($dto);
 
-        return redirect()->route('manager.trips.invoices.show', $invoice->ulid)->with('success', 'Invoice generated successfully.');
+        return redirect()->route('manager.trips.invoice.show', $trip)->with('success', 'Invoice generated successfully.');
     }
 
     public function show(string $invoiceUlid): View
@@ -34,6 +34,17 @@ final class TripInvoiceController extends Controller
             ->where('ulid', $invoiceUlid)
             ->with(['trip.client.user', 'trip.driver.user', 'trip.truck', 'trip.goods'])
             ->firstOrFail();
+
+        $this->authorize('view', $invoice->trip);
+
+        return view('manager::trips.invoices.show', compact('invoice'));
+    }
+
+    public function showByTrip(Trip $trip): View
+    {
+        $this->authorize('view', $trip);
+
+        $invoice = $trip->invoice()->with(['trip.client.user', 'trip.driver.user', 'trip.truck', 'trip.goods'])->firstOrFail();
 
         return view('manager::trips.invoices.show', compact('invoice'));
     }

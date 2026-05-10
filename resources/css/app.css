@@ -452,7 +452,7 @@
   @apply w-full;
 }
 .flatpickr-calendar {
-  @apply mt-2 !rounded-xl bg-black !p-5 !border !border-transparent dark:!border-white/5 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 dark:!shadow-theme-xl 2xsm:!w-auto;
+  @apply mt-2 !rounded-xl !bg-white !p-5 !border !border-gray-200 !text-gray-700 !shadow-theme-md 2xsm:!w-auto;
 }
 .flatpickr-time input {
   background-color: #f9fafb !important;
@@ -467,7 +467,7 @@
 }
 .flatpickr-current-month .cur-month,
 .flatpickr-current-month input.cur-year {
-  @apply !h-auto !pt-0 !text-lg !font-medium !text-gray-800 dark:!text-white/90;
+  @apply !h-auto !pt-0 !text-lg !font-medium !text-gray-800;
 }
 
 .flatpickr-prev-month,
@@ -480,11 +480,11 @@
 }
 
 .flatpickr-weekday {
-  @apply !text-theme-sm !font-medium !text-gray-500 dark:!text-gray-400;
+  @apply !text-theme-sm !font-medium !text-gray-500;
 }
 
 .flatpickr-day {
-  @apply !flex !items-center !text-theme-sm !font-medium !text-gray-800 dark:!text-white/90 dark:hover:!border-gray-300 dark:hover:!bg-gray-900;
+  @apply !flex !items-center !text-theme-sm !font-medium !text-gray-800;
 }
 .flatpickr-day.nextMonthDay,
 .flatpickr-day.prevMonthDay {
@@ -492,7 +492,7 @@
 }
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
-  @apply !top-7 dark:!fill-white dark:!text-white;
+  @apply !top-7;
 }
 .flatpickr-months .flatpickr-prev-month.flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month.flatpickr-prev-month {
@@ -504,13 +504,12 @@
 }
 span.flatpickr-weekday,
 .flatpickr-months .flatpickr-month {
-  @apply dark:!fill-white dark:!text-white;
+  @apply !fill-gray-700 !text-gray-700;
 }
 .flatpickr-day.inRange {
   box-shadow:
     -5px 0 0 #f9fafb,
     5px 0 0 #f9fafb !important;
-  @apply dark:!shadow-datepicker;
 }
 .flatpickr-day.inRange,
 .flatpickr-day.prevMonthDay.inRange,
@@ -524,13 +523,13 @@ span.flatpickr-weekday,
 .flatpickr-day:focus,
 .flatpickr-day.prevMonthDay:focus,
 .flatpickr-day.nextMonthDay:focus {
-  @apply !border-gray-50 !bg-gray-50 dark:!border-0 dark:!border-white/5 dark:!bg-white/5;
+  @apply !border-gray-100 !bg-gray-50;
 }
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
 .flatpickr-day.selected,
 .flatpickr-day.endRange {
-  @apply !text-white dark:!text-white;
+  @apply !text-white;
 }
 .flatpickr-day.selected,
 .flatpickr-day.startRange,

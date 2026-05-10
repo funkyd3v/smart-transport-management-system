@@ -10,7 +10,6 @@ use App\Modules\Trip\Models\Trip;
 use App\Modules\Trip\Models\TripStatus as TripStatusModel;
 use App\Modules\Trip\Repositories\Contracts\TripRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TripRepository implements TripRepositoryInterface
 {
@@ -44,7 +43,23 @@ class TripRepository implements TripRepositoryInterface
     public function findByUlid(string $ulid): Trip
     {
         return Trip::query()
-            ->with(['client', 'truck', 'driver', 'status', 'goods', 'invoice', 'expenses', 'payments', 'dueRecord', 'reloadHistory'])
+            ->with([
+                'client:id,company_name,user_id',
+                'client.user:id,name',
+                'truck:id,truck_number',
+                'driver:id,user_id',
+                'driver.user:id,name',
+                'status:id,name',
+                'goods',
+                'invoice',
+                'expenses:id,trip_id,category_id,amount,description,expense_date,recorded_by',
+                'expenses.category:id,name',
+                'payments:id,trip_id,payment_method_id,amount,payment_date,collected_by,transaction_reference,note',
+                'payments.paymentMethod:id,name',
+                'payments.collector:id,name',
+                'dueRecord',
+                'reloadHistory',
+            ])
             ->where('ulid', $ulid)
             ->firstOrFail();
     }
@@ -54,16 +69,49 @@ class TripRepository implements TripRepositoryInterface
         return Trip::query()->where('trip_code', $code)->firstOrFail();
     }
 
-    public function paginate(array $filters, int $perPage = 20): LengthAwarePaginator
+    public function paginate(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         return Trip::query()
-            ->with(['client', 'driver', 'truck', 'status'])
-            ->when(isset($filters['status_id']), fn ($q) => $q->where('status_id', $filters['status_id']))
-            ->when(isset($filters['client_id']), fn ($q) => $q->where('client_id', $filters['client_id']))
-            ->when(isset($filters['driver_id']), fn ($q) => $q->where('driver_id', $filters['driver_id']))
-            ->when(isset($filters['date_from']), fn ($q) => $q->whereDate('load_date', '>=', $filters['date_from']))
-            ->when(isset($filters['date_to']), fn ($q) => $q->whereDate('load_date', '<=', $filters['date_to']))
-            ->latest('id')
+            ->select([
+                'id',
+                'ulid',
+                'trip_code',
+                'client_id',
+                'truck_id',
+                'driver_id',
+                'status_id',
+                'pickup_point',
+                'delivery_point',
+                'load_date',
+                'trip_rate',
+                'due_amount',
+                'created_at',
+            ])
+            ->with([
+                'client:id,company_name,user_id',
+                'client.user:id,name',
+                'truck:id,truck_number',
+                'driver:id,user_id',
+                'driver.user:id,name',
+                'status:id,name',
+            ])
+            ->when(filled($filters['status_id'] ?? null), fn ($q) => $q->where('status_id', (int) $filters['status_id']))
+            ->when(filled($filters['client_id'] ?? null), fn ($q) => $q->where('client_id', (int) $filters['client_id']))
+            ->when(filled($filters['truck_id'] ?? null), fn ($q) => $q->where('truck_id', (int) $filters['truck_id']))
+            ->when(filled($filters['date_from'] ?? null), fn ($q) => $q->whereDate('load_date', '>=', (string) $filters['date_from']))
+            ->when(filled($filters['date_to'] ?? null), fn ($q) => $q->whereDate('load_date', '<=', (string) $filters['date_to']))
+            ->when(filled($filters['search'] ?? null), function ($q) use ($filters): void {
+                $search = (string) $filters['search'];
+
+                $q->where(function ($searchQuery) use ($search): void {
+                    $searchQuery->where('trip_code', 'like', "%{$search}%")
+                        ->orWhereHas('client', function ($clientQuery) use ($search): void {
+                            $clientQuery->where('company_name', 'like', "%{$search}%")
+                                ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"));
+                        });
+                });
+            })
+            ->orderByDesc('created_at')
             ->paginate($perPage);
     }
 
@@ -72,7 +120,9 @@ class TripRepository implements TripRepositoryInterface
         $statusModel = TripStatusModel::query()->where('name', $status->value)->first();
 
         if ($statusModel === null) {
-            throw new ModelNotFoundException('Trip status not found: '.$status->value);
+            $statusModel = TripStatusModel::query()->firstOrCreate([
+                'name' => $status->value,
+            ]);
         }
 
         return $trip->update(['status_id' => $statusModel->id]);

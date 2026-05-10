@@ -2,7 +2,7 @@
     $isEdit = isset($client);
 @endphp
 
-<div class="space-y-6" x-data="clientFormComponent('{{ old('client_type', $client->client_type ?? '') }}')">
+<div class="space-y-6" x-data="clientFormComponent('{{ old('client_type', $client->client_type ?? '') }}')" x-init="initDatePicker()">
     <x-common.component-card :title="$isEdit ? 'Edit Client' : 'Client Registration Form'" :desc="$isEdit ? 'Update client information and contact details.' : 'Register a new transport business client.'">
         <form class="space-y-6" @submit.prevent="submitClientForm('{{ $formAction }}', '{{ $formMethod }}')">
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -84,12 +84,22 @@
 
                 <div x-show="clientType === 'contractual' || clientType === 'mega_project'" x-cloak>
                     <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Target Finishing Date</label>
-                    <input
-                        x-ref="target_finishing_date"
-                        type="date"
-                        value="{{ old('target_finishing_date', $client->target_finishing_date ?? '') }}"
-                        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-                    />
+                    <div class="relative custom-datepicker">
+                        <input
+                            x-ref="target_finishing_date"
+                            type="text"
+                            value="{{ old('target_finishing_date', $client->target_finishing_date ?? '') }}"
+                            placeholder="Select date"
+                            autocomplete="off"
+                            readonly
+                            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+                        />
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" class="size-5">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M8 2C8.41421 2 8.75 2.33579 8.75 2.75V3.75H15.25V2.75C15.25 2.33579 15.5858 2 16 2C16.4142 2 16.75 2.33579 16.75 2.75V3.75H18.5C19.7426 3.75 20.75 4.75736 20.75 6V9V19C20.75 20.2426 19.7426 21.25 18.5 21.25H5.5C4.25736 21.25 3.25 20.2426 3.25 19V9V6C3.25 4.75736 4.25736 3.75 5.5 3.75H7.25V2.75C7.25 2.33579 7.58579 2 8 2ZM8 5.25H5.5C5.08579 5.25 4.75 5.58579 4.75 6V8.25H19.25V6C19.25 5.58579 18.9142 5.25 18.5 5.25H16H8ZM19.25 9.75H4.75V19C4.75 19.4142 5.08579 19.75 5.5 19.75H18.5C18.9142 19.75 19.25 19.4142 19.25 19V9.75Z" fill="currentColor"></path>
+                            </svg>
+                        </span>
+                    </div>
                     <span x-show="errors.target_finishing_date" x-text="errors.target_finishing_date ? errors.target_finishing_date[0] : ''" class="mt-1 block text-sm text-red-500"></span>
                 </div>
 
@@ -126,6 +136,23 @@
             return {
                 clientType: initialType || 'port',
                 errors: {},
+                datePicker: null,
+                initDatePicker() {
+                    this.$nextTick(() => {
+                        if (typeof flatpickr === 'undefined' || !this.$refs.target_finishing_date) {
+                            return;
+                        }
+
+                        this.datePicker = flatpickr(this.$refs.target_finishing_date, {
+                            mode: 'single',
+                            static: true,
+                            monthSelectorType: 'static',
+                            dateFormat: 'Y-m-d',
+                            allowInput: false,
+                            defaultDate: this.$refs.target_finishing_date.value || null,
+                        });
+                    });
+                },
                 async submitClientForm(url, method) {
                     const payload = {
                         name: this.$refs.name.value,

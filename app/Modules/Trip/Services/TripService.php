@@ -56,7 +56,7 @@ class TripService
     public function updateStatus(UpdateTripStatusDTO $dto): Trip
     {
         $trip = $this->tripRepository->findByUlid($dto->tripUlid);
-        $fromStatus = TripStatus::from((string) $trip->status->name);
+        $fromStatus = $this->mapStatus((string) ($trip->status?->name ?? 'created'));
 
         if (! $trip->canTransitionTo($dto->status)) {
             throw new RuntimeException('Invalid status transition from '.$fromStatus->value.' to '.$dto->status->value);
@@ -75,5 +75,18 @@ class TripService
         event(new TripStatusChanged($updated, $fromStatus, $dto->status));
 
         return $updated;
+    }
+
+    private function mapStatus(string $statusName): TripStatus
+    {
+        $normalized = strtolower(trim($statusName));
+
+        return match ($normalized) {
+            'created', 'pending' => TripStatus::Created,
+            'in_progress', 'active', 'in_transit' => TripStatus::InProgress,
+            'completed' => TripStatus::Completed,
+            'cancelled', 'canceled' => TripStatus::Cancelled,
+            default => TripStatus::Created,
+        };
     }
 }

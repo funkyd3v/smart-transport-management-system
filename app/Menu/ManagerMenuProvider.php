@@ -52,10 +52,6 @@ class ManagerMenuProvider implements MenuProviderInterface
                                 'name' => 'Add New Driver',
                                 'path' => $this->safeRoute('manager.drivers.create'),
                             ],
-                            [
-                                'name' => 'Driver Profile',
-                                'path' => $this->safeRoute('manager.drivers.show'),
-                            ],
                         ],
                     ],
                     [
@@ -69,10 +65,6 @@ class ManagerMenuProvider implements MenuProviderInterface
                             [
                                 'name' => 'Add New Truck',
                                 'path' => $this->safeRoute('manager.trucks.create'),
-                            ],
-                            [
-                                'name' => 'Truck Profile',
-                                'path' => $this->safeRoute('manager.trucks.show'),
                             ],
                         ],
                     ],

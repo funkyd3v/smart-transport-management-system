@@ -6,18 +6,16 @@ namespace App\Modules\Trip\Enums;
 
 enum TripStatus: string
 {
-    case Pending = 'pending';
-    case Active = 'active';
-    case InTransit = 'in_transit';
+    case Created = 'created';
+    case InProgress = 'in_progress';
     case Completed = 'completed';
     case Cancelled = 'cancelled';
 
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'Pending',
-            self::Active => 'Active',
-            self::InTransit => 'In Transit',
+            self::Created => 'Created',
+            self::InProgress => 'In Progress',
             self::Completed => 'Completed',
             self::Cancelled => 'Cancelled',
         };
@@ -29,9 +27,8 @@ enum TripStatus: string
     public function allowedNextStatuses(): array
     {
         return match ($this) {
-            self::Pending => [self::Active, self::Cancelled],
-            self::Active => [self::InTransit, self::Cancelled],
-            self::InTransit => [self::Completed, self::Cancelled],
+            self::Created => [self::InProgress, self::Cancelled],
+            self::InProgress => [self::Completed, self::Cancelled],
             self::Completed => [],
             self::Cancelled => [],
         };

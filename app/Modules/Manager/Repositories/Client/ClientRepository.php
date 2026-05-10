@@ -9,6 +9,7 @@ use App\Modules\Client\Models\Client;
 use App\Modules\Client\Models\ClientCategory;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -31,11 +32,17 @@ class ClientRepository implements ClientRepositoryInterface
         $hasProject = Schema::hasColumn($table, 'project');
         $hasProjectName = Schema::hasColumn($table, 'project_name');
         $hasUserId = Schema::hasColumn($table, 'user_id');
+        $hasCategoryId = Schema::hasColumn($table, 'category_id');
 
         $shouldJoinUsers = $hasUserId && (! $hasName || ! $hasContactNumber);
+        $shouldJoinClientCategories = ! $hasClientType && $hasCategoryId;
 
         if ($shouldJoinUsers) {
             $query->leftJoin('users', 'users.id', '=', "{$table}.user_id");
+        }
+
+        if ($shouldJoinClientCategories) {
+            $query->leftJoin('client_categories', 'client_categories.id', '=', "{$table}.category_id");
         }
 
         $query->select(["{$table}.id", "{$table}.created_at"]);
@@ -60,6 +67,12 @@ class ClientRepository implements ClientRepositoryInterface
 
         if ($hasClientType) {
             $query->addSelect("{$table}.client_type");
+        } elseif ($shouldJoinClientCategories) {
+            $query->selectRaw("CASE
+                WHEN LOWER(client_categories.name) IN ('contractual', 'contractual client') THEN 'contractual'
+                WHEN LOWER(client_categories.name) IN ('mega project', 'mega project client', 'mega_project', 'mega_project_client') THEN 'mega_project'
+                ELSE 'port'
+            END as client_type");
         } else {
             $query->selectRaw("'port' as client_type");
         }
@@ -80,6 +93,17 @@ class ClientRepository implements ClientRepositoryInterface
 
         if ($hasClientType && filled($filters['client_type'] ?? null)) {
             $query->where("{$table}.client_type", (string) $filters['client_type']);
+        } elseif ($shouldJoinClientCategories && filled($filters['client_type'] ?? null)) {
+            $categoryNames = match ((string) $filters['client_type']) {
+                'contractual' => ['contractual', 'contractual client'],
+                'mega_project' => ['mega project', 'mega project client', 'mega_project', 'mega_project_client'],
+                default => ['port', 'port client'],
+            };
+
+            $query->whereIn(
+                DB::raw('LOWER(client_categories.name)'),
+                $categoryNames
+            );
         }
 
         if ($hasStatus && filled($filters['status'] ?? null)) {
@@ -190,9 +214,9 @@ class ClientRepository implements ClientRepositoryInterface
             ]);
 
             $categoryName = match ((string) ($data['client_type'] ?? 'port')) {
-                'contractual' => 'Contractual Client',
-                'mega_project' => 'Mega Project Client',
-                default => 'Port Client',
+                'contractual' => 'Contractual',
+                'mega_project' => 'Mega Project',
+                default => 'Port',
             };
 
             $category = ClientCategory::query()->firstOrCreate(
@@ -243,9 +267,9 @@ class ClientRepository implements ClientRepositoryInterface
 
             if (isset($data['client_type'])) {
                 $categoryName = match ((string) $data['client_type']) {
-                    'contractual' => 'Contractual Client',
-                    'mega_project' => 'Mega Project Client',
-                    default => 'Port Client',
+                    'contractual' => 'Contractual',
+                    'mega_project' => 'Mega Project',
+                    default => 'Port',
                 };
 
                 $category = ClientCategory::query()->firstOrCreate(

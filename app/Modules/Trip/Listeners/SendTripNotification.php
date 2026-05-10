@@ -15,11 +15,11 @@ class SendTripNotification
 {
     public function handle(TripStatusChanged $event): void
     {
-        if (! in_array($event->to, [TripStatus::Active, TripStatus::Completed], true)) {
+        if (! in_array($event->to, [TripStatus::InProgress, TripStatus::Completed], true)) {
             return;
         }
 
-        $channel = $event->to === TripStatus::Active
+        $channel = $event->to === TripStatus::InProgress
             ? NotificationChannel::TripStart
             : NotificationChannel::TripComplete;
 

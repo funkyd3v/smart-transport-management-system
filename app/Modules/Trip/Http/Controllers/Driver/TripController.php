@@ -26,7 +26,7 @@ final class TripController extends Controller
     {
         $trips = Trip::query()
             ->where('driver_id', $request->user()->driver->id)
-            ->whereHas('status', fn ($query) => $query->whereIn('name', [TripStatus::Active->value, TripStatus::InTransit->value]))
+            ->whereHas('status', fn ($query) => $query->whereIn('name', [TripStatus::Created->value, TripStatus::InProgress->value]))
             ->latest('id')
             ->paginate(20);
 

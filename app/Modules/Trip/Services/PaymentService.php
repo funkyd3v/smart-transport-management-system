@@ -43,15 +43,6 @@ class PaymentService
                 'note' => $dto->note,
             ]);
 
-            $dueRecord->collected_amount = (float) $dueRecord->collected_amount + $dto->amount;
-            $dueRecord->remaining_due = max(0, (float) $dueRecord->original_due - (float) $dueRecord->collected_amount);
-            $dueRecord->is_settled = $dueRecord->remaining_due <= 0;
-            $dueRecord->settled_at = $dueRecord->is_settled ? now() : null;
-            $dueRecord->save();
-
-            $trip->due_amount = $dueRecord->remaining_due;
-            $trip->save();
-
             $this->recalculateTripFinancials->execute($trip);
 
             return $payment->fresh();

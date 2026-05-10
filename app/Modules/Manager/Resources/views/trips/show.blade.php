@@ -4,69 +4,148 @@
     <x-common.page-breadcrumb pageTitle="Trip Details" />
 
     <div class="space-y-6">
-        @if (session('success'))
-            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('success') }}</div>
-        @endif
-
         <x-common.component-card title="{{ $trip->trip_code }}" desc="Monitor and control this trip lifecycle.">
             <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                     <p class="text-sm text-gray-500">Route</p>
-                    <p class="font-medium text-gray-800 dark:text-white/90">{{ $trip->pickup_point }} → {{ $trip->delivery_point }}</p>
+                    <p class="font-medium text-gray-800 dark:text-white/90">{{ $trip->pickup_point }} -> {{ $trip->delivery_point }}</p>
                     <p class="mt-3 text-sm text-gray-500">Client</p>
                     <p class="font-medium text-gray-800 dark:text-white/90">{{ $trip->client?->company_name ?? $trip->client?->user?->name ?? '-' }}</p>
                     <p class="mt-3 text-sm text-gray-500">Driver</p>
-                    <p class="font-medium text-gray-800 dark:text-white/90">{{ $trip->driver?->user?->name ?? '-' }}</p>
+                    <p class="font-medium text-gray-800 dark:text-white/90">{{ $trip->driver?->name ?? $trip->driver?->user?->name ?? '-' }}</p>
                     <p class="mt-3 text-sm text-gray-500">Truck</p>
                     <p class="font-medium text-gray-800 dark:text-white/90">{{ $trip->truck?->truck_number ?? '-' }}</p>
                 </div>
 
                 <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                     <p class="text-sm text-gray-500">Financials</p>
-                    <p class="mt-1 text-sm">Income: <strong>{{ number_format((float) $trip->total_income, 2) }}</strong></p>
-                    <p class="text-sm">Expense: <strong>{{ number_format((float) $trip->total_expense, 2) }}</strong></p>
-                    <p class="text-sm">Due: <strong>{{ number_format((float) $trip->due_amount, 2) }}</strong></p>
-                    <p class="text-sm">Profit: <strong>{{ number_format((float) $trip->profit, 2) }}</strong></p>
+                    <p class="mt-1 text-sm">Trip Rate: <strong>{{ number_format((float) $summary['trip_rate'], 2) }}</strong></p>
+                    <p class="text-sm">Advance Paid: <strong>{{ number_format((float) $summary['advance_paid'], 2) }}</strong></p>
+                    <p class="text-sm">Payments Total: <strong>{{ number_format((float) $summary['payments_total'], 2) }}</strong></p>
+                    <p class="text-sm">Expense Total: <strong>{{ number_format((float) $summary['total_expense'], 2) }}</strong></p>
+                    <p class="text-sm">Due: <strong>{{ number_format((float) $summary['due_balance'], 2) }}</strong></p>
+                    <p class="text-sm">Profit: <strong>{{ number_format((float) $summary['profit'], 2) }}</strong></p>
                     <p class="mt-3 text-sm">Current Status: <strong>{{ ucfirst(str_replace('_', ' ', (string) $trip->status?->name)) }}</strong></p>
                     <p class="text-sm">Invoiced: <strong>{{ $trip->isInvoiced() ? 'Yes' : 'No' }}</strong></p>
                 </div>
             </div>
 
-            <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-                <form method="POST" action="{{ route('manager.trips.status.update') }}" class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-                    @csrf
-                    <input type="hidden" name="trip_ulid" value="{{ $trip->ulid }}" />
+            <div class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3" x-data="tripMutations()">
+                <form @submit.prevent="submitStatus" class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                     <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">Update Status</h3>
-                    <select name="status" class="mb-3 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700">
+                    <select x-model="statusForm.status" class="mb-3 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700">
                         @foreach (\App\Modules\Trip\Enums\TripStatus::cases() as $status)
                             <option value="{{ $status->value }}">{{ $status->label() }}</option>
                         @endforeach
                     </select>
-                    <textarea name="note" rows="2" placeholder="Optional note" class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-gray-700"></textarea>
+                    <textarea x-model="statusForm.note" rows="2" placeholder="Optional note" class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-gray-700"></textarea>
                     <button class="rounded bg-brand-500 px-4 py-2 text-sm text-white">Save</button>
                 </form>
 
-                <form method="POST" action="{{ route('manager.trips.invoices.store') }}" class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-                    @csrf
-                    <input type="hidden" name="trip_ulid" value="{{ $trip->ulid }}" />
-                    <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">Invoice</h3>
-                    <p class="mb-3 text-xs text-gray-500">Generate invoice when the trip billing is ready.</p>
-                    <button class="rounded bg-green-600 px-4 py-2 text-sm text-white">Generate Invoice</button>
-                    @if ($trip->invoice)
-                        <a href="{{ route('manager.trips.invoices.show', $trip->invoice->ulid) }}" class="mt-3 block text-sm text-brand-600">View Latest Invoice</a>
-                    @endif
+                <form @submit.prevent="submitPayment" class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+                    <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">Record Payment</h3>
+                    <select x-model="paymentForm.payment_method_id" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700">
+                        <option value="">Payment method</option>
+                        @foreach ($paymentMethods as $method)
+                            <option value="{{ $method->id }}">{{ $method->name }}</option>
+                        @endforeach
+                    </select>
+                    <input x-model="paymentForm.amount" type="number" step="0.01" min="0" placeholder="Amount" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
+                    <input x-model="paymentForm.payment_date" type="date" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
+                    <input x-model="paymentForm.transaction_reference" placeholder="Reference (optional)" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
+                    <textarea x-model="paymentForm.note" rows="2" placeholder="Note" class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-gray-700"></textarea>
+                    <button class="rounded bg-indigo-600 px-4 py-2 text-sm text-white">Save Payment</button>
                 </form>
 
-                <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-                    <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">Transactions</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ route('manager.trips.payments.create', $trip->ulid) }}" class="rounded bg-indigo-600 px-4 py-2 text-sm text-white">Record Payment</a>
-                        <a href="{{ route('manager.trips.expenses.create', $trip->ulid) }}" class="rounded bg-orange-600 px-4 py-2 text-sm text-white">Record Expense</a>
-                    </div>
+                <form @submit.prevent="submitExpense" class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+                    <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">Record Expense</h3>
+                    <select x-model="expenseForm.category_id" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700">
+                        <option value="">Expense category</option>
+                        @foreach ($expenseCategories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                    <input x-model="expenseForm.amount" type="number" step="0.01" min="0" placeholder="Amount" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
+                    <input x-model="expenseForm.expense_date" type="date" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
+                    <textarea x-model="expenseForm.description" rows="2" placeholder="Description" class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-gray-700"></textarea>
+                    <button class="rounded bg-orange-600 px-4 py-2 text-sm text-white">Save Expense</button>
+                </form>
+            </div>
+
+            <div class="mt-6 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h3 class="text-sm font-semibold text-gray-800 dark:text-white/90">Invoice</h3>
+                    <a href="{{ route('manager.trips.invoice.show', $trip) }}" class="rounded bg-green-600 px-4 py-2 text-sm text-white">View / Print Invoice</a>
+                </div>
+                <p class="mt-2 text-xs text-gray-500">Invoice is generated automatically on trip creation and synced with due records.</p>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
+                    <div class="border-b border-gray-100 px-4 py-3 text-sm font-semibold dark:border-gray-800">Payment History</div>
+                    <table class="w-full min-w-[540px]">
+                        <thead>
+                            <tr class="border-b border-gray-100 dark:border-gray-800">
+                                <th class="px-4 py-2 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400">Date</th>
+                                <th class="px-4 py-2 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400">Method</th>
+                                <th class="px-4 py-2 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400">Amount</th>
+                                <th class="px-4 py-2 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400">Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payments-table-body">
+                            @forelse ($trip->payments as $payment)
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
+                                    <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $payment->payment_date }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $payment->paymentMethod?->name ?? '-' }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ number_format((float) $payment->amount, 2) }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $payment->transaction_reference ?? '-' }}</td>
+                                </tr>
+                            @empty
+                                <tr id="payments-empty-row"><td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">No payments recorded.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
+                    <div class="border-b border-gray-100 px-4 py-3 text-sm font-semibold dark:border-gray-800">Expense History</div>
+                    <table class="w-full min-w-[540px]">
+                        <thead>
+                            <tr class="border-b border-gray-100 dark:border-gray-800">
+                                <th class="px-4 py-2 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400">Date</th>
+                                <th class="px-4 py-2 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400">Category</th>
+                                <th class="px-4 py-2 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400">Amount</th>
+                                <th class="px-4 py-2 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenses-table-body">
+                            @forelse ($trip->expenses as $expense)
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
+                                    <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $expense->expense_date }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $expense->category?->name ?? '-' }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ number_format((float) $expense->amount, 2) }}</td>
+                                    <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ $expense->description ?? '-' }}</td>
+                                </tr>
+                            @empty
+                                <tr id="expenses-empty-row"><td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">No expenses recorded.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <div class="mt-6 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="border-b border-gray-100 px-4 py-3 text-sm font-semibold dark:border-gray-800">Trip Timeline</div>
+                <div class="space-y-2 p-4 text-sm text-gray-700 dark:text-gray-300">
+                    <p>Created at: {{ optional($trip->created_at)->format('Y-m-d H:i') }}</p>
+                    <p>Last updated: {{ optional($trip->updated_at)->format('Y-m-d H:i') }}</p>
+                    <p>Completed at: {{ optional($trip->completed_at)->format('Y-m-d H:i') ?? '-' }}</p>
+                    <p>Cancelled at: {{ optional($trip->cancelled_at)->format('Y-m-d H:i') ?? '-' }}</p>
+                </div>
+            </div>
+
+            <div class="mt-6 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="border-b border-gray-100 px-4 py-3 text-sm font-semibold dark:border-gray-800">Goods Details</div>
                 <table class="w-full min-w-[700px]">
                     <thead>
                         <tr class="border-b border-gray-100 dark:border-gray-800">
@@ -94,4 +173,90 @@
             </div>
         </x-common.component-card>
     </div>
+
+    @push('scripts')
+        <script>
+            function tripMutations() {
+                return {
+                    statusForm: { status: '{{ (string) ($trip->status?->name ?? 'created') }}', note: '' },
+                    paymentForm: {
+                        trip_ulid: '{{ $trip->ulid }}',
+                        client_id: '{{ $trip->client_id }}',
+                        payment_method_id: '',
+                        amount: '',
+                        payment_date: '{{ now()->toDateString() }}',
+                        transaction_reference: '',
+                        is_advance: false,
+                        note: '',
+                    },
+                    expenseForm: {
+                        trip_ulid: '{{ $trip->ulid }}',
+                        category_id: '',
+                        amount: '',
+                        expense_date: '{{ now()->toDateString() }}',
+                        description: '',
+                    },
+                    async submitStatus() {
+                        await this.sendJson('{{ route('manager.trips.update-status', $trip) }}', this.statusForm, 'PATCH', () => {
+                            window.location.reload();
+                        });
+                    },
+                    async submitPayment() {
+                        await this.sendJson('{{ route('manager.trips.payments.store', $trip) }}', this.paymentForm, 'POST', (data) => {
+                            const empty = document.getElementById('payments-empty-row');
+                            if (empty) {
+                                empty.remove();
+                            }
+                            const row = document.createElement('tr');
+                            row.className = 'border-b border-gray-100 dark:border-gray-800';
+                            row.innerHTML = `<td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${data.payment.date}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${data.payment.method || '-'}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${Number(data.payment.amount).toFixed(2)}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${data.payment.reference || '-'}</td>`;
+                            document.getElementById('payments-table-body').prepend(row);
+                        });
+                    },
+                    async submitExpense() {
+                        await this.sendJson('{{ route('manager.trips.expenses.store', $trip) }}', this.expenseForm, 'POST', (data) => {
+                            const empty = document.getElementById('expenses-empty-row');
+                            if (empty) {
+                                empty.remove();
+                            }
+                            const row = document.createElement('tr');
+                            row.className = 'border-b border-gray-100 dark:border-gray-800';
+                            row.innerHTML = `<td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${data.expense.date}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${data.expense.category || '-'}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${Number(data.expense.amount).toFixed(2)}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${data.expense.description || '-'}</td>`;
+                            document.getElementById('expenses-table-body').prepend(row);
+                        });
+                    },
+                    async sendJson(url, payload, method, onSuccess) {
+                        const response = await fetch(url, {
+                            method,
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            Toastify({ text: data.message ?? 'Action failed.', duration: 4000, gravity: 'top', position: 'right', backgroundColor: '#ef4444', stopOnFocus: true }).showToast();
+                            return;
+                        }
+
+                        Toastify({ text: data.message ?? 'Action completed.', duration: 2500, gravity: 'top', position: 'right', backgroundColor: '#22c55e', stopOnFocus: true }).showToast();
+
+                        if (typeof onSuccess === 'function') {
+                            onSuccess(data);
+                        }
+                    },
+                }
+            }
+        </script>
+    @endpush
 @endsection

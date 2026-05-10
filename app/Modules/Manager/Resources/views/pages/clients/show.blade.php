@@ -10,12 +10,12 @@
                 <span
                     class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
                     @class([
-                        'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' => $client->category?->name === 'port',
-                        'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300' => $client->category?->name === 'contractual',
-                        'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300' => $client->category?->name === 'mega_project',
+                        'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' => $client->client_type === 'port',
+                        'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300' => $client->client_type === 'contractual',
+                        'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300' => $client->client_type === 'mega_project',
                     ])
                 >
-                    {{ $client->category?->name ?? 'Unknown' }}
+                    {{ str_replace('_', ' ', ucfirst((string) $client->client_type)) }}
                 </span>
                 <span
                     class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize"
@@ -48,7 +48,7 @@
             </div>
         </div>
 
-        @if ($client->category?->name !== 'port')
+        @if ($client->client_type !== 'port')
             <x-common.component-card title="Project Details" desc="Contract/project metadata for this client.">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>

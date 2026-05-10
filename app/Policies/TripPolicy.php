@@ -39,6 +39,16 @@ class TripPolicy
 
     public function delete(User $user, Trip $trip): bool
     {
+        return $this->hasRole($user, ['admin']);
+    }
+
+    public function updateStatus(User $user, Trip $trip): bool
+    {
+        return $this->hasRole($user, ['admin', 'manager']);
+    }
+
+    public function recordExpense(User $user, Trip $trip): bool
+    {
         return $this->hasRole($user, ['admin', 'manager']);
     }
 

@@ -8,6 +8,8 @@ use App\Modules\Trip\DTOs\UpdateTripStatusDTO;
 use App\Modules\Trip\Enums\TripStatus;
 use App\Modules\Trip\Models\Trip;
 use App\Modules\Trip\Services\TripService;
+use App\Modules\Truck\Models\Truck;
+use App\Modules\Truck\Models\TruckStatus;
 
 class CompleteTripAction
 {
@@ -22,6 +24,25 @@ class CompleteTripAction
             note: $dto->note,
         );
 
-        return $this->tripService->updateStatus($completedDto);
+        $trip = $this->tripService->updateStatus($completedDto);
+
+        $this->markTruckIdle($trip);
+
+        return $trip;
+    }
+
+    private function markTruckIdle(Trip $trip): void
+    {
+        $truck = Truck::query()->find($trip->truck_id);
+
+        if ($truck === null) {
+            return;
+        }
+
+        $status = TruckStatus::query()->firstOrCreate([
+            'name' => 'Idle',
+        ]);
+
+        $truck->forceFill(['status_id' => $status->id])->save();
     }
 }

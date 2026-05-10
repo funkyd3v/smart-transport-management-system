@@ -88,7 +88,9 @@ class Client extends Model
         }
 
         return match ($this->category?->name) {
+            'Contractual',
             'Contractual Client' => 'contractual',
+            'Mega Project',
             'Mega Project Client' => 'mega_project',
             default => 'port',
         };

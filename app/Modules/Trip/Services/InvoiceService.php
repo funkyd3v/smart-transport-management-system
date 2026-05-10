@@ -48,16 +48,6 @@ class InvoiceService
             $trip->invoice_generated_at = now();
             $trip->save();
 
-            $trip->dueRecord()->create([
-                'ulid' => str()->ulid()->toBase32(),
-                'client_id' => $trip->client_id,
-                'original_due' => $invoice->due_amount,
-                'collected_amount' => 0,
-                'remaining_due' => $invoice->due_amount,
-                'due_date' => now()->addDays(7)->toDateString(),
-                'is_settled' => false,
-            ]);
-
             $this->recalculateTripFinancials->execute($trip);
 
             return $invoice->fresh();

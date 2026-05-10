@@ -162,18 +162,33 @@ class Trip extends Model
 
     public function canAddExpense(): bool
     {
-        return in_array($this->status?->name, [TripStatusEnum::InTransit->value, TripStatusEnum::Completed->value], true);
+        $statusName = strtolower(trim((string) $this->status?->name));
+
+        return in_array($statusName, [TripStatusEnum::InProgress->value, 'active', 'in_transit', TripStatusEnum::Completed->value], true);
     }
 
     public function canTransitionTo(TripStatusEnum $toStatus): bool
     {
-        $current = TripStatusEnum::tryFrom((string) $this->status?->name);
+        $current = $this->normalizedStatus();
 
         if ($current === null) {
             return false;
         }
 
         return in_array($toStatus, $current->allowedNextStatuses(), true);
+    }
+
+    private function normalizedStatus(): ?TripStatusEnum
+    {
+        $statusName = strtolower(trim((string) $this->status?->name));
+
+        return match ($statusName) {
+            'created', 'pending' => TripStatusEnum::Created,
+            'in_progress', 'active', 'in_transit' => TripStatusEnum::InProgress,
+            'completed' => TripStatusEnum::Completed,
+            'cancelled', 'canceled' => TripStatusEnum::Cancelled,
+            default => null,
+        };
     }
 
     public function getRouteKeyName(): string

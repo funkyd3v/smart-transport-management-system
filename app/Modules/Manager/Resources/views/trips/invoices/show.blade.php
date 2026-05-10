@@ -1,9 +1,37 @@
 @extends('manager::layouts.app')
 
 @section('content')
+    <style>
+        @media print {
+            .no-print,
+            .sidebar,
+            .header,
+            nav,
+            aside {
+                display: none !important;
+            }
+
+            body {
+                background: #fff !important;
+            }
+
+            .print-card {
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+        }
+    </style>
+
     <x-common.page-breadcrumb pageTitle="Trip Invoice" />
 
-    <div class="mx-auto max-w-4xl rounded-xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+    <div class="mx-auto mb-4 max-w-4xl no-print">
+        <button type="button" onclick="window.print()" class="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white">Print Invoice</button>
+    </div>
+
+    <div class="print-card mx-auto max-w-4xl rounded-xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
         <div class="mb-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">Invoice {{ $invoice->invoice_number }}</h1>

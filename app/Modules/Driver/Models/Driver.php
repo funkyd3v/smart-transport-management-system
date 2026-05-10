@@ -9,10 +9,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Driver extends Model
+class Driver extends Model implements HasMedia
 {
-    use HasUlid, SoftDeletes;
+    use HasUlid, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'ulid',
@@ -21,7 +25,6 @@ class Driver extends Model
         'nid_number',
         'driving_type',
         'joining_date',
-        'image_path',
         'total_trips',
         'total_profit_generated',
         'rating',
@@ -47,5 +50,48 @@ class Driver extends Model
     public function trips(): HasMany
     {
         return $this->hasMany(Trip::class);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('avatar')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->fit(Fit::Crop, 150, 150)
+            ->sharpen(10)
+            ->nonQueued();
+    }
+
+    public function getNameAttribute(?string $value): ?string
+    {
+        return $value ?? $this->user?->name;
+    }
+
+    public function getMobileNumberAttribute(?string $value): ?string
+    {
+        return $value ?? $this->user?->phone;
+    }
+
+    public function getStatusAttribute(?string $value): string
+    {
+        if (filled($value)) {
+            return (string) $value;
+        }
+
+        return $this->user?->is_active ? 'active' : 'inactive';
+    }
+
+    public function getIsApprovedAttribute(?bool $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        return $this->user?->approved_at !== null;
     }
 }
