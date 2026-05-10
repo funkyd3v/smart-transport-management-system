@@ -42,7 +42,7 @@ class ManagerMenuProvider implements MenuProviderInterface
                     ],
                     [
                         'name' => 'Drivers',
-                        'icon' => 'truck',
+                        'icon' => 'steering-wheel',
                         'subItems' => [
                             [
                                 'name' => 'Driver List',
