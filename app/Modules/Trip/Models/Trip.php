@@ -123,6 +123,11 @@ class Trip extends Model
         return $this->hasMany(ReloadHistory::class, 'trip_id');
     }
 
+    public function reloadHistories(): HasMany
+    {
+        return $this->reloadHistory();
+    }
+
     public function notifications(): HasMany
     {
         return $this->hasMany(TripNotification::class, 'trip_id');

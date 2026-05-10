@@ -20,6 +20,11 @@ class DriverMenuProvider implements MenuProviderInterface
                         'icon' => 'dashboard',
                         'path' => $this->safeRoute('driver.dashboard'),
                     ],
+                    [
+                        'name' => 'Trips',
+                        'icon' => 'table',
+                        'path' => $this->safeRoute('driver.trips.index'),
+                    ],
                 ],
             ],
         ];

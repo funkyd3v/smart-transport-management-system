@@ -33,6 +33,46 @@ class ReloadHistory extends Model
         ];
     }
 
+    public function getReloadAmountAttribute(): ?float
+    {
+        $metadata = $this->decodeMetadata();
+
+        if (! array_key_exists('reload_amount', $metadata) || $metadata['reload_amount'] === null || $metadata['reload_amount'] === '') {
+            return null;
+        }
+
+        return (float) $metadata['reload_amount'];
+    }
+
+    public function getNoteTextAttribute(): ?string
+    {
+        $metadata = $this->decodeMetadata();
+
+        if (array_key_exists('note', $metadata)) {
+            $note = $metadata['note'];
+
+            return filled($note) ? (string) $note : null;
+        }
+
+        return filled($this->attributes['note'] ?? null) ? (string) $this->attributes['note'] : null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decodeMetadata(): array
+    {
+        $note = (string) ($this->attributes['note'] ?? '');
+
+        if ($note === '') {
+            return [];
+        }
+
+        $decoded = json_decode($note, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
     public function trip(): BelongsTo
     {
         return $this->belongsTo(Trip::class);
