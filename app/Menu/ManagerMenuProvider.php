@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Menu;
 
 use App\Contracts\MenuProviderInterface;
+use Illuminate\Routing\Exceptions\UrlGenerationException;
 use Illuminate\Support\Facades\Route;
 
 class ManagerMenuProvider implements MenuProviderInterface
@@ -23,7 +24,7 @@ class ManagerMenuProvider implements MenuProviderInterface
                 ],
             ],
             [
-                'title' => 'Client Management',
+                'title' => 'Management',
                 'items' => [
                     [
                         'name' => 'Clients',
@@ -37,17 +38,8 @@ class ManagerMenuProvider implements MenuProviderInterface
                                 'name' => 'Add New Client',
                                 'path' => $this->safeRoute('manager.clients.create'),
                             ],
-                            [
-                                'name' => 'Client Profile',
-                                'path' => $this->safeRoute('manager.clients.show'),
-                            ],
                         ],
                     ],
-                ],
-            ],
-            [
-                'title' => 'Driver Management',
-                'items' => [
                     [
                         'name' => 'Drivers',
                         'icon' => 'truck',
@@ -66,11 +58,6 @@ class ManagerMenuProvider implements MenuProviderInterface
                             ],
                         ],
                     ],
-                ],
-            ],
-            [
-                'title' => 'Truck Management',
-                'items' => [
                     [
                         'name' => 'Trucks',
                         'icon' => 'truck',
@@ -89,6 +76,20 @@ class ManagerMenuProvider implements MenuProviderInterface
                             ],
                         ],
                     ],
+                    [
+                        'name' => 'Trips',
+                        'icon' => 'table',
+                        'subItems' => [
+                            [
+                                'name' => 'Trip List',
+                                'path' => $this->safeRoute('manager.trips.index'),
+                            ],
+                            [
+                                'name' => 'Create Trip',
+                                'path' => $this->safeRoute('manager.trips.create'),
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -96,6 +97,14 @@ class ManagerMenuProvider implements MenuProviderInterface
 
     private function safeRoute(string $name): string
     {
-        return Route::has($name) ? route($name) : '#';
+        if (! Route::has($name)) {
+            return '#';
+        }
+
+        try {
+            return route($name);
+        } catch (UrlGenerationException) {
+            return '#';
+        }
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use App\Modules\Auth\Models\User;
+use App\Models\User;
 use App\Modules\Trip\Models\Trip;
 
 class TripPolicy
@@ -20,7 +20,7 @@ class TripPolicy
             return true;
         }
 
-        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) $user->driver?->id;
+        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
     }
 
     public function create(User $user): bool
@@ -34,7 +34,7 @@ class TripPolicy
             return true;
         }
 
-        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) $user->driver?->id;
+        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
     }
 
     public function delete(User $user, Trip $trip): bool
@@ -57,6 +57,8 @@ class TripPolicy
      */
     private function hasRole(User $user, array $roles): bool
     {
-        return in_array((string) $user->role?->name, $roles, true);
+        $roleName = is_object($user->role) ? (string) ($user->role->name ?? '') : (string) $user->role;
+
+        return in_array($roleName, $roles, true);
     }
 }

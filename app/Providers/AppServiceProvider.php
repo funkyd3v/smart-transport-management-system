@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Contracts\MenuProviderInterface;
 use App\Menu\MenuResolver;
+use App\Modules\Client\Models\Client;
+use App\Modules\Manager\Policies\ClientPolicy;
 use App\Modules\Trip\Models\Trip;
 use App\Policies\TripPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -29,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Trip::class, TripPolicy::class);
+        Gate::policy(Client::class, ClientPolicy::class);
     }
 }

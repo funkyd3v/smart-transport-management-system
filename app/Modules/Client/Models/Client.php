@@ -67,4 +67,54 @@ class Client extends Model
     {
         return $this->hasMany(DueRecord::class);
     }
+
+    /**
+     * Accessors for form-friendly field names
+     */
+    public function getNameAttribute(?string $value): ?string
+    {
+        return $value ?? $this->company_name ?? $this->user?->name;
+    }
+
+    public function getContactNumberAttribute(?string $value): ?string
+    {
+        return $value ?? $this->user?->phone;
+    }
+
+    public function getClientTypeAttribute(?string $value): string
+    {
+        if (filled($value)) {
+            return (string) $value;
+        }
+
+        return match ($this->category?->name) {
+            'Contractual Client' => 'contractual',
+            'Mega Project Client' => 'mega_project',
+            default => 'port',
+        };
+    }
+
+    public function getProjectAttribute(?string $value): ?string
+    {
+        return $value ?? $this->project_name;
+    }
+
+    public function getProjectAgreementNumberAttribute(?string $value): ?string
+    {
+        return $value ?? $this->agreement_number;
+    }
+
+    public function getTargetFinishingDateAttribute(?string $value): ?string
+    {
+        if (filled($value)) {
+            return $value;
+        }
+
+        return $this->project_end_date?->format('Y-m-d');
+    }
+
+    public function getStatusAttribute(?string $value): string
+    {
+        return $value ?? 'active';
+    }
 }
