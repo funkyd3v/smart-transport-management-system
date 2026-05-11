@@ -1,5 +1,5 @@
 <header
-    class="sticky top-0 z-99999 flex w-full min-w-0 overflow-x-hidden bg-white border-gray-200 dark:border-gray-800 dark:bg-gray-900 xl:border-b"
+    class="sticky top-0 z-99999 flex w-full min-w-0 overflow-visible bg-white border-gray-200 dark:border-gray-800 dark:bg-gray-900 xl:border-b"
     x-data="{
         isApplicationMenuOpen: false,
         toggleApplicationMenu() {

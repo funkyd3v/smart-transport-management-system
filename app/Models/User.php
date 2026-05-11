@@ -11,11 +11,15 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasUlid, Notifiable;
+    use HasFactory, HasUlid, InteractsWithMedia, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -68,5 +72,44 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getAuthPasswordName(): string
     {
         return 'password_hash';
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('avatar')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        if (! $this->canGenerateImageConversions()) {
+            return;
+        }
+
+        $this->addMediaConversion('thumb')
+            ->fit(Fit::Crop, 150, 150)
+            ->sharpen(10)
+            ->nonQueued();
+    }
+
+    private function canGenerateImageConversions(): bool
+    {
+        return function_exists('imagecreatefromstring') || extension_loaded('imagick');
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        $avatarMedia = $this->getFirstMedia('avatar');
+
+        if ($avatarMedia === null) {
+            return asset('images/user/owner.png');
+        }
+
+        if ($avatarMedia->hasGeneratedConversion('thumb')) {
+            return $avatarMedia->getUrl('thumb');
+        }
+
+        return $avatarMedia->getUrl();
     }
 }
