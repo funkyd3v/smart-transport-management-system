@@ -68,6 +68,7 @@ final class TripController extends Controller
         abort_unless((bool) $driverId, 404);
 
         $trip = Trip::query()->where('ulid', $tripUlid)->where('driver_id', $driverId)->firstOrFail();
+        $this->authorize('addReloadHistory', $trip);
         ($this->addReloadHistory)($trip, (int) $trip->truck_id, (int) $trip->driver_id, $request->string('reload_point')->toString(), $request->string('note')->toString());
 
         return back()->with('success', 'Reload history added.');

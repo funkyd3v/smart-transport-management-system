@@ -7,7 +7,7 @@
         <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="flex items-center gap-4">
-                    <img src="{{ $driver->getFirstMediaUrl('avatar', 'thumb') ?: $driver->getFirstMediaUrl('avatar') ?: asset('images/user/user-01.jpg') }}" alt="Driver Avatar" class="h-20 w-20 rounded-full object-cover">
+                    <img src="{{ $driver->avatar_url }}" alt="Driver Avatar" class="h-20 w-20 rounded-full object-cover">
                     <div>
                         <h2 class="text-xl font-semibold text-gray-800 dark:text-white/90">{{ $driver->name ?? '-' }}</h2>
                         <p class="mt-1 text-theme-sm text-gray-600 dark:text-gray-300">{{ $driver->mobile_number ?? '-' }}</p>

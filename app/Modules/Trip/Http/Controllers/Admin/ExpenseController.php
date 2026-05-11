@@ -19,7 +19,7 @@ final class ExpenseController extends Controller
     public function create(string $tripUlid): View
     {
         $trip = Trip::query()->where('ulid', $tripUlid)->firstOrFail();
-        $this->authorize('update', $trip);
+        $this->authorize('recordExpense', $trip);
 
         return view('trip::admin.expenses.create', compact('trip'));
     }
@@ -27,7 +27,7 @@ final class ExpenseController extends Controller
     public function store(RecordExpenseRequest $request): RedirectResponse
     {
         $trip = Trip::query()->where('ulid', $request->validated()['trip_ulid'])->firstOrFail();
-        $this->authorize('update', $trip);
+        $this->authorize('recordExpense', $trip);
 
         $dto = RecordExpenseDTO::fromRequest($request);
         ($this->recordExpense)($dto);

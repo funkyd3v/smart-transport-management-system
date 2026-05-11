@@ -61,10 +61,34 @@ class Driver extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
+        if (! $this->canGenerateImageConversions()) {
+            return;
+        }
+
         $this->addMediaConversion('thumb')
             ->fit(Fit::Crop, 150, 150)
             ->sharpen(10)
             ->nonQueued();
+    }
+
+    private function canGenerateImageConversions(): bool
+    {
+        return function_exists('imagecreatefromstring') || extension_loaded('imagick');
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        $avatarMedia = $this->getFirstMedia('avatar');
+
+        if ($avatarMedia === null) {
+            return asset('images/user/user-01.jpg');
+        }
+
+        if ($avatarMedia->hasGeneratedConversion('thumb')) {
+            return $avatarMedia->getUrl('thumb');
+        }
+
+        return $avatarMedia->getUrl();
     }
 
     public function getNameAttribute(?string $value): ?string

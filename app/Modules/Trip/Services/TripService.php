@@ -62,6 +62,10 @@ class TripService
             throw new RuntimeException('Invalid status transition from '.$fromStatus->value.' to '.$dto->status->value);
         }
 
+        if ($fromStatus === $dto->status) {
+            return $trip->fresh(['status']);
+        }
+
         DB::transaction(function () use ($trip, $dto): void {
             $this->tripRepository->updateStatus($trip, $dto->status);
 

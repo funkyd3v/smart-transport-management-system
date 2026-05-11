@@ -27,10 +27,10 @@ enum TripStatus: string
     public function allowedNextStatuses(): array
     {
         return match ($this) {
-            self::Created => [self::InProgress, self::Cancelled],
-            self::InProgress => [self::Completed, self::Cancelled],
-            self::Completed => [],
-            self::Cancelled => [],
+            self::Created => [self::Created, self::InProgress, self::Cancelled],
+            self::InProgress => [self::InProgress, self::Completed, self::Cancelled],
+            self::Completed => [self::Completed],
+            self::Cancelled => [self::Cancelled],
         };
     }
 }

@@ -49,7 +49,20 @@ class TripPolicy
 
     public function recordExpense(User $user, Trip $trip): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin', 'manager'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
+    }
+
+    public function addReloadHistory(User $user, Trip $trip): bool
+    {
+        if ($this->hasRole($user, ['admin', 'manager'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
     }
 
     public function generateInvoice(User $user, Trip $trip): bool

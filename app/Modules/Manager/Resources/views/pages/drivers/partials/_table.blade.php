@@ -19,7 +19,7 @@
                         <td class="px-5 py-4 text-theme-sm text-gray-700 dark:text-gray-300">{{ ($drivers->firstItem() ?? 0) + $loop->index }}</td>
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-3">
-                                <img src="{{ $driver->getFirstMediaUrl('avatar', 'thumb') ?: $driver->getFirstMediaUrl('avatar') ?: asset('images/user/user-01.jpg') }}" alt="Driver Avatar" class="h-10 w-10 rounded-full object-cover">
+                                <img src="{{ $driver->avatar_url }}" alt="Driver Avatar" class="h-10 w-10 rounded-full object-cover">
                                 <span class="text-theme-sm font-medium text-gray-800 dark:text-white/90">{{ $driver->name ?? '-' }}</span>
                             </div>
                         </td>
