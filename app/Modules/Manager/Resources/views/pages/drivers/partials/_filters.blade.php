@@ -35,7 +35,7 @@
             @change="submit()"
             class="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-10 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
         >
-            <option value="">All Approval</option>
+            <option value="">All</option>
             <option value="1" @selected(($filters['is_approved'] ?? '') === '1')>Approved</option>
             <option value="0" @selected(($filters['is_approved'] ?? '') === '0')>Unapproved</option>
         </select>

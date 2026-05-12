@@ -9,7 +9,7 @@
                 @include('manager::pages.drivers.partials._filters')
 
                 <a href="{{ route('manager.drivers.create') }}"
-                    class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600">
+                    class="inline-flex items-center justify-center whitespace-nowrap rounded-lg bg-brand-500 px-5 py-3.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600">
                     + Add Driver
                 </a>
             </div>
