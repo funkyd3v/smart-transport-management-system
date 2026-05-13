@@ -79,7 +79,7 @@
         <span class="text-sm text-gray-500 dark:text-gray-400">{{ now()->format('l, d M Y') }}</span>
     </div>
 
-    <section class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4 xl:grid-cols-7">
+    <section class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4 xl:grid-cols-4">
         <article class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
                 <svg class="h-5 w-5 text-gray-700 dark:text-white/90" viewBox="0 0 24 24" fill="none"><path d="M3 7h18v10H3z" stroke="currentColor" stroke-width="1.8"/><path d="M7 7V5m10 2V5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>

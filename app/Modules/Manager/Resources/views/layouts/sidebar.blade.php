@@ -9,19 +9,52 @@
 @once
     <style>
         @keyframes gradient {
-            0% {
-                background-position: 0% center;
-            }
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
 
-            100% {
-                background-position: 200% center;
-            }
+        /* Option 1 — Deep Navy & Steel, bottom-to-top (Manager Sidebar) */
+        #sidebar .menu-item-active {
+            background: linear-gradient(to right, #3b82f6, #06b6d4);
+            color: #ffffff;
+            box-shadow: 0 2px 12px rgba(6, 182, 212, 0.28);
+        }
+        #sidebar .menu-item-inactive {
+            color: rgba(203, 213, 225, 0.85);
+        }
+        #sidebar .menu-item-inactive:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #ffffff;
+        }
+        #sidebar .menu-item-icon-active {
+            color: #ffffff;
+        }
+        #sidebar .menu-item-icon-inactive {
+            color: rgba(148, 163, 184, 0.9);
+        }
+        #sidebar .group:hover .menu-item-icon-inactive {
+            color: #ffffff;
+        }
+        #sidebar .menu-dropdown-item-active {
+            color: #67e8f9;
+            background: rgba(6, 182, 212, 0.12);
+        }
+        #sidebar .menu-dropdown-item-inactive {
+            color: rgba(203, 213, 225, 0.75);
+        }
+        #sidebar .menu-dropdown-item-inactive:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #ffffff;
+        }
+        #sidebar .sidebar-chevron-open {
+            color: #22d3ee;
         }
     </style>
 @endonce
 
 <aside id="sidebar"
-    class="fixed flex flex-col mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-99999 border-r border-gray-200"
+    class="fixed flex flex-col mt-0 top-0 px-5 left-0 h-screen transition-all duration-300 ease-in-out z-99999 border-r border-[#1e3a5f]/60 text-white"
+    style="background: linear-gradient(to top, #0a0f1e 0%, #0f172a 40%, #1e293b 75%, #2d3f5e 100%);"
     x-data="{
         openSubmenus: {},
         init() {
@@ -93,7 +126,7 @@
                 @foreach ($menuGroups as $groupIndex => $menuGroup)
                     <div>
                         <!-- Menu Group Title -->
-                        <h2 class="mb-4 text-xs uppercase flex leading-[20px] text-gray-400"
+                        <h2 class="mb-4 text-xs uppercase flex leading-[20px] text-slate-400/50 tracking-widest"
                             :class="(!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen) ?
                             'lg:justify-center' : 'justify-start'">
                             <template
@@ -147,7 +180,7 @@
                                             <svg x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen"
                                                 class="ml-auto w-5 h-5 transition-transform duration-200"
                                                 :class="{
-                                                    'rotate-180 text-brand-500': isSubmenuOpen({{ $groupIndex }},
+                                                    'rotate-180 sidebar-chevron-open': isSubmenuOpen({{ $groupIndex }},
                                                         {{ $itemIndex }})
                                                 }"
                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">

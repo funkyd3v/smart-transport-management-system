@@ -5,13 +5,20 @@ declare(strict_types=1);
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Admin\Services\AdminDashboardService;
 use Illuminate\Contracts\View\View;
 
-class DashboardController extends Controller
+final class DashboardController extends Controller
 {
+    public function __construct(private readonly AdminDashboardService $service) {}
+
     public function __invoke(): View
     {
-        // Load admin dashboard metrics, approvals, and system-wide activity here.
-        return view('admin::pages.dashboard.ecommerce');
+        return $this->index();
+    }
+
+    public function index(): View
+    {
+        return view('admin::dashboard', $this->service->dashboardData());
     }
 }

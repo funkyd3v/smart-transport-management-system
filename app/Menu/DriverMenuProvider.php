@@ -25,6 +25,11 @@ class DriverMenuProvider implements MenuProviderInterface
                         'icon' => 'table',
                         'path' => $this->safeRoute('driver.trips.index'),
                     ],
+                    [
+                        'name' => 'My Profile',
+                        'icon' => 'user',
+                        'path' => $this->safeRoute('driver.profile'),
+                    ],
                 ],
             ],
         ];

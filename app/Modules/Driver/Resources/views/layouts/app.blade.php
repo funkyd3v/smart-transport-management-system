@@ -116,8 +116,8 @@
     {{-- preloader end --}}
 
     <div class="min-h-screen overflow-x-hidden xl:flex">
-        @include('admin::layouts.backdrop')
-        @include('admin::layouts.sidebar')
+        @include('driver::layouts.backdrop')
+        @include('driver::layouts.sidebar')
 
         <div class="min-w-0 flex-1 overflow-x-hidden transition-all duration-300 ease-in-out"
             :class="{
@@ -126,7 +126,7 @@
                 'ml-0': $store.sidebar.isMobileOpen
             }">
             <!-- app header start -->
-            @include('admin::layouts.app-header')
+            @include('driver::layouts.app-header')
             <!-- app header end -->
             <div class="mx-auto min-w-0 max-w-(--breakpoint-2xl) p-4 md:p-6">
                 @yield('content')

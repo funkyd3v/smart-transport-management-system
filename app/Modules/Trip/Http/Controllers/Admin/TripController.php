@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Trip\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Admin\Services\AdminOperationsService;
 use App\Modules\Trip\Actions\CreateTripAction;
 use App\Modules\Trip\Actions\UpdateTripStatusAction;
 use App\Modules\Trip\DTOs\CreateTripDTO;
@@ -20,6 +21,7 @@ use Illuminate\View\View;
 final class TripController extends Controller
 {
     public function __construct(
+        private readonly AdminOperationsService $adminService,
         private readonly CreateTripAction $createTrip,
         private readonly UpdateTripStatusAction $updateTripStatus,
         private readonly TripRepositoryInterface $tripRepository,
@@ -29,9 +31,7 @@ final class TripController extends Controller
     {
         $this->authorize('viewAny', Trip::class);
 
-        $trips = $this->tripRepository->paginate($request->only(['status_id', 'client_id', 'driver_id', 'date_from', 'date_to']));
-
-        return view('trip::admin.trips.index', compact('trips'));
+        return view('admin::pages.trips.index', $this->adminService->tripsPageData());
     }
 
     public function create(): View
