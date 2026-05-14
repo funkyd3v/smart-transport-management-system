@@ -4,7 +4,7 @@
             <div class="nav-logo-icon">
                 <i class="fas fa-truck-fast" style="color: #fff; font-size: 15px;"></i>
             </div>
-            <span class="nav-logo-text">Trans<span class="text-gradient">Core</span></span>
+            <span class="nav-logo-text">Trans<span class="text-gradient">Corp</span></span>
         </a>
 
         <div class="nav-links">
@@ -16,7 +16,7 @@
 
         <div class="nav-ctas">
             <a href="#" class="nav-signin">Sign In</a>
-            <a href="#contact" class="nav-demo">Get Demo →</a>
+            <a href="#contact" class="nav-demo">Contact Us →</a>
         </div>
 
         <button class="hamburger" id="menu-toggle" aria-label="Menu" type="button">

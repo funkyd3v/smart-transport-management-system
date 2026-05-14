@@ -5,7 +5,7 @@
                 <div class="nav-logo-icon">
                     <i class="fas fa-truck-fast" style="color: #fff; font-size: 15px;"></i>
                 </div>
-                <span class="nav-logo-text" style="color: #fff;">Trans<span class="text-gradient">Core</span></span>
+                <span class="nav-logo-text" style="color: #fff;">Trans<span class="text-gradient">Corp</span></span>
             </a>
 
             <p class="footer-desc">
@@ -49,7 +49,7 @@
 
     <div style="border-top: 1px solid rgba(255, 255, 255, 0.06);">
         <div class="footer-bottom">
-            <span>©2026 TransCore. All rights reserved.</span>
+            <span>©2026 TransCorp. All rights reserved.</span>
             <span style="display: flex; align-items: center; gap: 6px;">
                 Built with <i class="fas fa-heart" style="color: #F59E0B; font-size: 11px;"></i> for Bangladesh
                 transport businesses

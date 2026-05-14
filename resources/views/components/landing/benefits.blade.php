@@ -6,7 +6,7 @@
         <div class="reveal" style="text-align: center; margin-bottom: 56px;">
             <div class="section-label" style="justify-content: center;">
                 <i class="fas fa-star" style="color: #B45309; font-size: 11px;"></i>
-                <span>Why TransCore</span>
+                <span>Why TransCorp</span>
             </div>
             <h2 class="section-title" style="margin-bottom: 14px;">Benefits That Actually<br><span class="text-gradient">Move Your Business</span></h2>
             <p class="section-sub" style="margin: 0 auto;">Not a generic ERP. Purpose-built for transport companies that want full digital control over every truck, driver, client, and taka.</p>

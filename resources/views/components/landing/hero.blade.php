@@ -75,7 +75,7 @@
                     <div class="dot-btn" style="background: #FEBC2E;"></div>
                     <div class="dot-btn" style="background: #28C840;"></div>
                     <div style="flex: 1; text-align: center; font-size: 12px; font-weight: 600; color: #94A3B8;">
-                        TransCore — Dashboard
+                        TransCorp — Dashboard
                     </div>
                     <div style="display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #22C55E;">
                         <span style="width: 6px; height: 6px; border-radius: 50%; background: #22C55E; display: inline-block; animation: pulse 2s infinite;"></span>

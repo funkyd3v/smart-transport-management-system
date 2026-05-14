@@ -38,7 +38,7 @@
 
  <div class="relative flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/70 bg-white/85 p-5 backdrop-blur-sm">
  <div>
- <h1 class="text-2xl font-semibold tracking-tight text-slate-900 md:text-[28px]">Admin Command Center</h1>
+			<h1 class="text-2xl font-semibold tracking-tight text-slate-900 md:text-[28px]">Admin Dashboard</h1>
  <p class="mt-1 text-sm text-slate-500">Full platform oversight across operations, finance, and governance.</p>
  </div>
  <a href="{{ route('admin.reports.index') }}" class="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-4 text-sm font-medium text-white shadow-lg shadow-sky-600/20 transition hover:from-sky-500 hover:to-blue-500">

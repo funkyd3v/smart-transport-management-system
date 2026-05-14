@@ -13,7 +13,7 @@ class AdminMenuProvider implements MenuProviderInterface
     {
         return [
             [
-                'title' => 'Main Menu',
+                'title' => '',
                 'items' => [
                     [
                         'name' => 'Dashboard',
