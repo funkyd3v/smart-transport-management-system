@@ -34,6 +34,8 @@ final class AdminDashboardService
             'topDrivers' => $this->repository->topDrivers(5),
             'recentAuditLogs' => $this->repository->recentAuditLogs(5),
             'pendingApprovals' => $this->repository->pendingApprovalsCount(),
+            'pendingCompletionRequests' => $this->repository->pendingCompletionRequestsCount(),
+            'pendingExpenseApprovals' => $this->repository->pendingExpenseApprovalsCount(),
         ];
     }
 }

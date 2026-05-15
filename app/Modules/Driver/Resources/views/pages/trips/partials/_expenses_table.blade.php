@@ -12,6 +12,7 @@
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Category</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Amount</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</th>
                 </tr>
             </thead>
             <tbody id="driver-expenses-body" class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-transparent">
@@ -21,10 +22,19 @@
                         <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ $expense->category?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">BDT {{ number_format((float) $expense->amount, 2) }}</td>
                         <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ $expense->description ?? '-' }}</td>
+                        <td class="px-4 py-3 text-sm">
+                            @if ($expense->is_approved)
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">Approved</span>
+                            @elseif ($expense->is_rejected)
+                                <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">Rejected</span>
+                            @else
+                                <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Pending Approval</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr id="driver-expenses-empty">
-                        <td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No expenses recorded yet.</td>
+                        <td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No expenses recorded yet.</td>
                     </tr>
                 @endforelse
             </tbody>

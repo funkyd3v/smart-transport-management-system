@@ -17,12 +17,13 @@
 
     <div class="space-y-6" x-data="driverTripShow({
         status: @js($statusValue ?: 'created'),
+        completionRequestedAt: @js(optional($trip->completion_requested_at)->toIso8601String()),
         tripCode: @js($trip->trip_code),
         tripUlid: @js($trip->ulid),
         updateStatusUrl: @js(route('driver.trips.update-status', $trip)),
         expenseUrl: @js(route('driver.trips.expenses.store', $trip)),
         reloadUrl: @js(route('driver.trips.reloads.store', $trip)),
-        trackingUrl: @js(route('driver.api.trips.location.store', $trip)),
+        trackingUrl: @js(route('driver.api.trips.location.store', $trip, false)),
         initialSummary: @js($summary),
         openModal: @js(request('modal')),
     })" x-init="init()">
@@ -179,6 +180,7 @@
 
                 return {
                     status: config.status,
+                    completionRequestedAt: config.completionRequestedAt,
                     tripCode: config.tripCode,
                     updateStatusUrl: config.updateStatusUrl,
                     expenseUrl: config.expenseUrl,
@@ -226,6 +228,10 @@
                         });
                     },
                     statusLabel() {
+                        if (this.completionRequestedAt) {
+                            return 'Completion Pending';
+                        }
+
                         const labels = {
                             created: 'Created',
                             in_progress: 'In Progress',
@@ -236,6 +242,10 @@
                         return labels[this.status] ?? this.status;
                     },
                     badgeClass() {
+                        if (this.completionRequestedAt) {
+                            return 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300';
+                        }
+
                         const classes = {
                             created: 'bg-gray-100 text-gray-700 dark:bg-gray-500/15 dark:text-gray-300',
                             in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
@@ -251,15 +261,15 @@
                     async updateStatus(targetStatus) {
                         const isCompleting = targetStatus === 'completed';
                         const result = await Swal.fire({
-                            title: isCompleting ? 'Complete Trip?' : 'Start Trip?',
+                            title: isCompleting ? 'Mark Trip Complete?' : 'Start Trip?',
                             text: isCompleting
-                                ? 'Mark this trip as completed? Ensure all expenses are recorded before completing.'
+                                ? 'This will send a completion request to manager/admin for approval before final completion.'
                                 : 'Are you sure you want to start this trip? This cannot be undone.',
                             icon: 'warning',
                             showCancelButton: true,
                             confirmButtonColor: isCompleting ? '#16a34a' : '#2563eb',
                             cancelButtonColor: '#6b7280',
-                            confirmButtonText: isCompleting ? 'Yes, complete it' : 'Yes, start it',
+                            confirmButtonText: isCompleting ? 'Yes, mark complete' : 'Yes, start it',
                         });
 
                         if (! result.isConfirmed) {
@@ -294,7 +304,8 @@
                             return;
                         }
 
-                        this.status = data.trip?.status ?? targetStatus;
+                        this.status = data.trip?.status ?? this.status;
+                        this.completionRequestedAt = data.trip?.completion_requested_at ?? this.completionRequestedAt;
                         this.updateTrackingLifecycle();
 
                         Toastify({
@@ -308,7 +319,7 @@
                         this.statusActionSubmitting = false;
                     },
                     isTrackingEnabledStatus() {
-                        return this.status === 'in_progress';
+                        return this.status === 'in_progress' && ! this.completionRequestedAt;
                     },
                     getDeviceId() {
                         const key = 'driver_tracking_device_id';
@@ -432,8 +443,10 @@
                         try {
                             const response = await fetch(this.trackingUrl, {
                                 method: 'POST',
+                                credentials: 'same-origin',
                                 headers: {
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    'X-Requested-With': 'XMLHttpRequest',
                                     'Accept': 'application/json',
                                     'Content-Type': 'application/json',
                                 },
@@ -449,6 +462,10 @@
                                 const data = await response.json();
 
                                 if ((data.message || '').toLowerCase().includes('not active')) {
+                                    this.stopTracking();
+                                }
+
+                                if ((data.message || '').toLowerCase().includes('completion request')) {
                                     this.stopTracking();
                                 }
                             }
@@ -486,12 +503,21 @@
                         return String(value ?? '').replace(/[&<>"']/g, (char) => map[char] ?? char);
                     },
                     expenseRowHtml(expense) {
+                        const isApproved = Boolean(expense.is_approved);
+                        const isRejected = Boolean(expense.is_rejected);
+                        const statusBadge = isApproved
+                            ? '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Approved</span>'
+                            : isRejected
+                                ? '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">Rejected</span>'
+                                : '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Pending Approval</span>';
+
                         return `
                             <tr class="border-b border-gray-100 dark:border-gray-800">
                                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">${this.escapeHtml(expense.expense_date)}</td>
                                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">${this.escapeHtml(expense.category)}</td>
                                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">BDT ${Number(expense.amount || 0).toFixed(2)}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${this.escapeHtml(expense.description || '-')}</td>
+                                <td class="px-4 py-3 text-sm">${statusBadge}</td>
                             </tr>
                         `;
                     },

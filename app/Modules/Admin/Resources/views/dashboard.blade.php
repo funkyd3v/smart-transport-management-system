@@ -72,6 +72,19 @@
  @endforeach
  </section>
 
+ <section class="relative grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+ <article class="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
+ <p class="text-sm text-amber-700">Completion Requests</p>
+ <h3 class="mt-2 text-3xl font-bold text-amber-700">{{ $pendingCompletionRequests ?? 0 }}</h3>
+ <p class="mt-2 text-sm text-amber-600">Trips waiting for manager or admin approval before final completion.</p>
+ </article>
+ <article class="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-white p-5 shadow-sm">
+ <p class="text-sm text-orange-700">Pending Expense Approvals</p>
+ <h3 class="mt-2 text-3xl font-bold text-orange-700">{{ $pendingExpenseApprovals ?? 0 }}</h3>
+ <p class="mt-2 text-sm text-orange-600">Driver-submitted expenses awaiting manager or admin approval.</p>
+ </article>
+ </section>
+
  <section class="relative grid grid-cols-1 gap-6 lg:grid-cols-5">
  <div class="space-y-6 lg:col-span-3">
  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -106,8 +119,18 @@
  </thead>
  <tbody>
  @forelse ($recentTrips as $trip)
+ @php
+ $isCompletionRequested = $trip->completion_requested_at !== null;
+ @endphp
  <tr class="border-b border-slate-200 transition hover:bg-slate-50">
- <td class="px-3 py-3 font-medium text-slate-900">{{ $trip->trip_code }}</td>
+ <td class="px-3 py-3 font-medium text-slate-900">
+ <div class="flex items-center gap-2">
+ <span>{{ $trip->trip_code }}</span>
+ @if ($isCompletionRequested)
+ <span class="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-medium text-amber-700 ring-1 ring-amber-200">Pending Approval</span>
+ @endif
+ </div>
+ </td>
  <td class="px-3 py-3 text-slate-700">{{ $trip->client?->company_name ?? $trip->client?->user?->name ?? '-' }}</td>
  <td class="px-3 py-3 text-slate-700">{{ $trip->driver?->user?->name ?? '-' }}</td>
  <td class="px-3 py-3 text-slate-700">{{ $trip->truck?->truck_number ?? '-' }}</td>
@@ -165,6 +188,8 @@
  <div class="space-y-2">
  <p class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700"><span>Pending</span><span class="font-medium">{{ $tripStatusBreakdown['pending'] ?? 0 }}</span></p>
  <p class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700"><span>In Progress</span><span class="font-medium">{{ $tripStatusBreakdown['in_progress'] ?? 0 }}</span></p>
+ <p class="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700"><span>Completion Requests</span><span class="font-medium">{{ $pendingCompletionRequests ?? 0 }}</span></p>
+ <p class="flex items-center justify-between rounded-lg bg-orange-50 px-3 py-2 text-sm text-orange-700"><span>Pending Expense Approvals</span><span class="font-medium">{{ $pendingExpenseApprovals ?? 0 }}</span></p>
  <p class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700"><span>Completed</span><span class="font-medium">{{ $tripStatusBreakdown['completed'] ?? 0 }}</span></p>
  <p class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700"><span>Cancelled</span><span class="font-medium">{{ $tripStatusBreakdown['cancelled'] ?? 0 }}</span></p>
  </div>

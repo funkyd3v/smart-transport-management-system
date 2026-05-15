@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Modules\Driver\Models\Driver;
 use App\Modules\Driver\Repositories\Trip\DriverTripRepositoryInterface;
 use App\Modules\Trip\Actions\AddReloadHistoryAction;
-use App\Modules\Trip\Actions\CompleteTripAction;
 use App\Modules\Trip\Actions\RecordExpenseAction;
 use App\Modules\Trip\Actions\UpdateTripStatusAction;
 use App\Modules\Trip\DTOs\RecordExpenseDTO;
@@ -17,6 +16,7 @@ use App\Modules\Trip\Enums\TripStatus;
 use App\Modules\Trip\Models\ReloadHistory;
 use App\Modules\Trip\Models\Trip;
 use App\Modules\Trip\Models\TripExpense;
+use App\Modules\Trip\Services\TripService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class DriverTripService
@@ -24,7 +24,7 @@ class DriverTripService
     public function __construct(
         private readonly DriverTripRepositoryInterface $tripRepository,
         private readonly UpdateTripStatusAction $updateTripStatus,
-        private readonly CompleteTripAction $completeTrip,
+        private readonly TripService $tripService,
         private readonly RecordExpenseAction $recordExpense,
         private readonly AddReloadHistoryAction $addReloadHistory,
     ) {}
@@ -67,7 +67,7 @@ class DriverTripService
             note: null,
         );
 
-        return ($this->completeTrip)($dto);
+        return $this->tripService->requestCompletion($dto);
     }
 
     /**
@@ -83,6 +83,7 @@ class DriverTripService
             description: $data['description'] ?? null,
             expenseDate: (string) $data['expense_date'],
             receiptPath: null,
+            isApproved: false,
         );
 
         return ($this->recordExpense)($dto);

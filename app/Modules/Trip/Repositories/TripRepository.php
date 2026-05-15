@@ -52,7 +52,7 @@ class TripRepository implements TripRepositoryInterface
                 'status:id,name',
                 'goods',
                 'invoice',
-                'expenses:id,trip_id,category_id,amount,description,expense_date,recorded_by',
+                'expenses:id,trip_id,category_id,amount,description,expense_date,recorded_by,is_approved,is_rejected,approved_by,approved_at,rejected_by,rejected_at',
                 'expenses.category:id,name',
                 'payments:id,trip_id,payment_method_id,amount,payment_date,collected_by,transaction_reference,note',
                 'payments.paymentMethod:id,name',
@@ -60,6 +60,7 @@ class TripRepository implements TripRepositoryInterface
                 'dueRecord',
                 'reloadHistory',
                 'currentVehicleLocation',
+                'completionRequestedBy:id,name',
             ])
             ->where('ulid', $ulid)
             ->firstOrFail();

@@ -23,6 +23,7 @@ class DriverTripRepository implements DriverTripRepositoryInterface
                 'load_date',
                 'status_id',
                 'truck_id',
+                'completion_requested_at',
             ])
             ->with([
                 'status:id,name',
@@ -62,6 +63,7 @@ class DriverTripRepository implements DriverTripRepositoryInterface
                 },
                 'invoice',
                 'dueRecord',
+                'completionRequestedBy:id,name',
             ])
             ->where('id', $tripId)
             ->where('driver_id', $driverId)

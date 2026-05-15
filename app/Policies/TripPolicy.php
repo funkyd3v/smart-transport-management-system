@@ -65,7 +65,9 @@ class TripPolicy
             return (int) $trip->created_by === (int) $user->id;
         }
 
-        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
+        return $this->hasRole($user, ['driver'])
+            && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0)
+            && ! $this->isCompletionRequested($trip);
     }
 
     public function addReloadHistory(User $user, Trip $trip): bool
@@ -78,7 +80,9 @@ class TripPolicy
             return (int) $trip->created_by === (int) $user->id;
         }
 
-        return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
+        return $this->hasRole($user, ['driver'])
+            && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0)
+            && ! $this->isCompletionRequested($trip);
     }
 
     public function generateInvoice(User $user, Trip $trip): bool
@@ -109,5 +113,10 @@ class TripPolicy
         $roleName = is_object($user->role) ? (string) ($user->role->name ?? '') : (string) $user->role;
 
         return in_array($roleName, $roles, true);
+    }
+
+    private function isCompletionRequested(Trip $trip): bool
+    {
+        return $trip->completion_requested_at !== null;
     }
 }

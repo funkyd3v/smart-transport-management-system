@@ -41,4 +41,8 @@ interface AdminDashboardRepositoryInterface
     public function recentAuditLogs(int $limit = 5): Collection;
 
     public function pendingApprovalsCount(): int;
+
+    public function pendingCompletionRequestsCount(): int;
+
+    public function pendingExpenseApprovalsCount(): int;
 }

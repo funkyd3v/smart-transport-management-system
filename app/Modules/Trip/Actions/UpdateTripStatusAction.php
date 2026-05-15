@@ -20,6 +20,10 @@ class UpdateTripStatusAction
 
     public function __invoke(UpdateTripStatusDTO $dto): Trip
     {
+        if ($dto->status === TripStatus::Completed && $this->isDriverRequest()) {
+            return $this->tripService->requestCompletion($dto);
+        }
+
         if ($dto->status === TripStatus::Completed) {
             return ($this->completeTrip)($dto);
         }
@@ -31,6 +35,14 @@ class UpdateTripStatusAction
         }
 
         return $trip;
+    }
+
+    private function isDriverRequest(): bool
+    {
+        $user = request()->user();
+        $roleName = is_object($user?->role) ? (string) ($user?->role?->name ?? '') : (string) ($user?->role ?? '');
+
+        return $roleName === 'driver';
     }
 
     private function markTruckIdle(Trip $trip): void

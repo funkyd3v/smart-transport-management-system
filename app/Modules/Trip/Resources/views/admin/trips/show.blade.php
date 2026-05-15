@@ -8,6 +8,10 @@
             <p><strong>Pickup:</strong> {{ $trip->pickup_point }}</p>
             <p><strong>Delivery:</strong> {{ $trip->delivery_point }}</p>
             <p><strong>Status:</strong> {{ $trip->status?->name }}</p>
+            @if ($trip->completion_requested_at !== null)
+                <p><strong>Completion Request:</strong> Pending since {{ optional($trip->completion_requested_at)->format('Y-m-d H:i') }}</p>
+                <p><strong>Requested By:</strong> {{ $trip->completionRequestedBy?->name ?? '-' }}</p>
+            @endif
             <p><strong>Rate:</strong> {{ $trip->trip_rate }}</p>
         </div>
         <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">

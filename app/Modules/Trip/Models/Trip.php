@@ -49,6 +49,9 @@ class Trip extends Model
         'sms_note',
         'invoice_generated_at',
         'completed_at',
+        'completion_requested_at',
+        'completion_requested_by',
+        'completion_requested_note',
     ];
 
     protected function casts(): array
@@ -65,6 +68,7 @@ class Trip extends Model
             'profit' => 'decimal:2',
             'invoice_generated_at' => 'datetime',
             'completed_at' => 'datetime',
+            'completion_requested_at' => 'datetime',
         ];
     }
 
@@ -86,6 +90,11 @@ class Trip extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function completionRequestedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'completion_requested_by');
     }
 
     public function status(): BelongsTo
@@ -179,7 +188,13 @@ class Trip extends Model
     {
         $statusName = strtolower(trim((string) $this->status?->name));
 
-        return in_array($statusName, [TripStatusEnum::InProgress->value, 'active', 'in_transit', TripStatusEnum::Completed->value], true);
+        return in_array($statusName, [TripStatusEnum::InProgress->value, 'active', 'in_transit', TripStatusEnum::Completed->value], true)
+            && ! $this->hasPendingCompletionRequest();
+    }
+
+    public function hasPendingCompletionRequest(): bool
+    {
+        return $this->completion_requested_at !== null;
     }
 
     public function canTransitionTo(TripStatusEnum $toStatus): bool

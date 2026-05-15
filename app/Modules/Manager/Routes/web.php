@@ -6,6 +6,7 @@ use App\Modules\Manager\Http\Controllers\Client\ClientController;
 use App\Modules\Manager\Http\Controllers\DashboardController;
 use App\Modules\Manager\Http\Controllers\Driver\DriverController;
 use App\Modules\Manager\Http\Controllers\Trip\TripController;
+use App\Modules\Manager\Http\Controllers\Trip\TripExpenseApprovalController;
 use App\Modules\Manager\Http\Controllers\Trip\TripExpenseController;
 use App\Modules\Manager\Http\Controllers\Trip\TripInvoiceController;
 use App\Modules\Manager\Http\Controllers\Trip\TripPaymentController;
@@ -35,6 +36,8 @@ Route::middleware(['web', 'auth', 'verified', 'role:manager'])
 
             Route::resource('trips', TripController::class)->except(['edit', 'update', 'destroy']);
             Route::post('trips/{trip}/expenses', [TripExpenseController::class, 'store'])->name('trips.expenses.store');
+            Route::post('trips/{trip}/expenses/{expense}/approve', [TripExpenseApprovalController::class, 'approve'])->name('trips.expenses.approve');
+            Route::post('trips/{trip}/expenses/{expense}/reject', [TripExpenseApprovalController::class, 'reject'])->name('trips.expenses.reject');
             Route::post('trips/{trip}/payments', [TripPaymentController::class, 'store'])->name('trips.payments.store');
             Route::get('trips/{trip}/invoice', [TripInvoiceController::class, 'showByTrip'])->name('trips.invoice.show');
             Route::patch('trips/{trip}/status', [TripController::class, 'updateStatus'])->name('trips.update-status');

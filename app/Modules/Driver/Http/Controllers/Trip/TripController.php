@@ -65,12 +65,13 @@ final class TripController extends Controller
 
         return response()->json([
             'message' => $status === TripStatus::Completed
-                ? 'Trip completed successfully.'
+                ? 'Trip marked complete and sent to manager/admin for approval.'
                 : 'Trip started successfully.',
             'trip' => [
-                'status' => $status->value,
-                'status_label' => $status->label(),
-                'badge_class' => $this->badgeClass($status->value),
+                'status' => (string) ($updatedTrip->status?->name ?? $status->value),
+                'status_label' => ucfirst(str_replace('_', ' ', (string) ($updatedTrip->status?->name ?? $status->value))),
+                'badge_class' => $this->badgeClass((string) ($updatedTrip->status?->name ?? $status->value)),
+                'completion_requested_at' => optional($updatedTrip->completion_requested_at)->toIso8601String(),
             ],
         ]);
     }

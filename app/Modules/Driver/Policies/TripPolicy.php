@@ -58,7 +58,9 @@ class TripPolicy
             return (int) $trip->created_by === (int) $user->id;
         }
 
-        return $this->ownsTrip($user, $trip) && ! $this->isTripClosed($trip);
+        return $this->ownsTrip($user, $trip)
+            && ! $this->isTripClosed($trip)
+            && ! $this->isCompletionRequested($trip);
     }
 
     public function addExpense(User $user, Trip $trip): bool
@@ -71,7 +73,9 @@ class TripPolicy
             return (int) $trip->created_by === (int) $user->id;
         }
 
-        return $this->ownsTrip($user, $trip) && $this->isTripInProgress($trip);
+        return $this->ownsTrip($user, $trip)
+            && $this->isTripInProgress($trip)
+            && ! $this->isCompletionRequested($trip);
     }
 
     public function recordExpense(User $user, Trip $trip): bool
@@ -89,7 +93,9 @@ class TripPolicy
             return (int) $trip->created_by === (int) $user->id;
         }
 
-        return $this->ownsTrip($user, $trip) && $this->isTripInProgress($trip);
+        return $this->ownsTrip($user, $trip)
+            && $this->isTripInProgress($trip)
+            && ! $this->isCompletionRequested($trip);
     }
 
     public function generateInvoice(User $user, Trip $trip): bool
@@ -116,7 +122,8 @@ class TripPolicy
     {
         return $this->hasRole($user, ['driver'])
             && $this->ownsTrip($user, $trip)
-            && $this->isTripInProgress($trip);
+            && $this->isTripInProgress($trip)
+            && ! $this->isCompletionRequested($trip);
     }
 
     /**
@@ -148,5 +155,10 @@ class TripPolicy
         $status = strtolower(trim((string) $trip->status?->name));
 
         return $status === TripStatusEnum::InProgress->value;
+    }
+
+    private function isCompletionRequested(Trip $trip): bool
+    {
+        return $trip->completion_requested_at !== null;
     }
 }

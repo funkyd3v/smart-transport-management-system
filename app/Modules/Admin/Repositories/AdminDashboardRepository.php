@@ -183,6 +183,19 @@ final class AdminDashboardRepository implements AdminDashboardRepositoryInterfac
             ->count();
     }
 
+    public function pendingCompletionRequestsCount(): int
+    {
+        return Trip::query()
+            ->whereNotNull('completion_requested_at')
+            ->whereNull('completed_at')
+            ->count();
+    }
+
+    public function pendingExpenseApprovalsCount(): int
+    {
+        return TripExpense::query()->where('is_approved', false)->count();
+    }
+
     private function tripStatusIds(array $names): array
     {
         return TripStatus::query()

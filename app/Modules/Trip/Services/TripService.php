@@ -70,7 +70,20 @@ class TripService
             $this->tripRepository->updateStatus($trip, $dto->status);
 
             if ($dto->status === TripStatus::Completed) {
-                $trip->forceFill(['completed_at' => now()])->save();
+                $trip->forceFill([
+                    'completed_at' => now(),
+                    'completion_requested_at' => null,
+                    'completion_requested_by' => null,
+                    'completion_requested_note' => null,
+                ])->save();
+            }
+
+            if ($dto->status === TripStatus::Cancelled) {
+                $trip->forceFill([
+                    'completion_requested_at' => null,
+                    'completion_requested_by' => null,
+                    'completion_requested_note' => null,
+                ])->save();
             }
         });
 
@@ -79,6 +92,30 @@ class TripService
         event(new TripStatusChanged($updated, $fromStatus, $dto->status));
 
         return $updated;
+    }
+
+    public function requestCompletion(UpdateTripStatusDTO $dto): Trip
+    {
+        $trip = $this->tripRepository->findByUlid($dto->tripUlid);
+        $currentStatus = $this->mapStatus((string) ($trip->status?->name ?? 'created'));
+
+        if ($currentStatus !== TripStatus::InProgress) {
+            throw new RuntimeException('Trip completion can only be requested while the trip is in progress.');
+        }
+
+        if ($trip->hasPendingCompletionRequest()) {
+            return $trip->fresh(['status', 'completionRequestedBy']);
+        }
+
+        DB::transaction(function () use ($trip, $dto): void {
+            $trip->forceFill([
+                'completion_requested_at' => now(),
+                'completion_requested_by' => $dto->updatedBy,
+                'completion_requested_note' => $dto->note,
+            ])->save();
+        });
+
+        return $this->tripRepository->findByUlid($trip->ulid);
     }
 
     private function mapStatus(string $statusName): TripStatus

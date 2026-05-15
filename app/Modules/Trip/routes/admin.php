@@ -23,6 +23,7 @@ Route::middleware(['web', 'auth', 'role:admin,manager'])
 
         Route::get('/{tripUlid}/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
         Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::post('/{tripUlid}/expenses/{expense}/approve', [ExpenseController::class, 'approve'])->name('expenses.approve');
     });
 
 Route::middleware(['web', 'auth', 'role:admin,manager'])

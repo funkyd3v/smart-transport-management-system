@@ -16,6 +16,7 @@ readonly class RecordExpenseDTO
         public ?string $description,
         public string $expenseDate,
         public ?string $receiptPath,
+        public bool $isApproved = true,
     ) {}
 
     public static function fromRequest(RecordExpenseRequest $request): self
