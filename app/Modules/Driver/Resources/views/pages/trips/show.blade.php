@@ -474,6 +474,10 @@
                         }
                     },
                     openExpenseModal() {
+                        if (this.status === 'completed' || this.status === 'cancelled') {
+                            return;
+                        }
+
                         this.expenseErrors = {};
                         this.expenseSubmitting = false;
                         this.showExpenseModal = true;
@@ -483,6 +487,10 @@
                         this.showExpenseModal = false;
                     },
                     openReloadModal() {
+                        if (this.status === 'completed' || this.status === 'cancelled') {
+                            return;
+                        }
+
                         this.reloadErrors = {};
                         this.reloadSubmitting = false;
                         this.showReloadModal = true;

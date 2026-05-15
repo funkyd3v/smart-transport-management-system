@@ -1,7 +1,7 @@
 <x-common.component-card title="Reload History" desc="Record reload stops during the trip.">
     <div class="flex items-center justify-between gap-4">
         <p class="text-sm text-gray-500 dark:text-gray-400">Track every reload stop with amount and time.</p>
-        <button type="button" @click="openReloadModal()" class="inline-flex items-center rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800">Add Reload</button>
+        <button type="button" x-show="status !== 'completed' && status !== 'cancelled'" @click="openReloadModal()" class="inline-flex items-center rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800">Add Reload</button>
     </div>
 
     <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">

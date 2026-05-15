@@ -1,7 +1,7 @@
 <x-common.component-card title="Expenses" desc="Expenses recorded by you for this trip.">
     <div class="flex items-center justify-between gap-4">
         <p class="text-sm text-gray-500 dark:text-gray-400">Add fuel, toll, and other trip expenses as you travel.</p>
-        <button type="button" @click="openExpenseModal()" class="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700">Add Expense</button>
+        <button type="button" x-show="status !== 'completed' && status !== 'cancelled'" @click="openExpenseModal()" class="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700">Add Expense</button>
     </div>
 
     <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">
