@@ -20,6 +20,7 @@ class Driver extends Model implements HasMedia
 
     protected $fillable = [
         'ulid',
+        'created_by',
         'user_id',
         'license_number',
         'nid_number',
@@ -45,6 +46,11 @@ class Driver extends Model implements HasMedia
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function trips(): HasMany

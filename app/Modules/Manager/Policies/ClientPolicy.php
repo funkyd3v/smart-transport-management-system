@@ -26,7 +26,11 @@ class ClientPolicy
 
     public function update(User $user, Client $client): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $client);
     }
 
     public function delete(User $user, Client $client): bool
@@ -39,6 +43,10 @@ class ClientPolicy
             return false;
         }
 
+        if (! $this->ownsResource($user, $client)) {
+            return false;
+        }
+
         $clientUserRole = $client->user !== null
             ? (is_object($client->user->role) ? (string) ($client->user->role->name ?? '') : (string) $client->user->role)
             : '';
@@ -48,7 +56,11 @@ class ClientPolicy
 
     public function toggleStatus(User $user, Client $client): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $client);
     }
 
     /**
@@ -59,5 +71,22 @@ class ClientPolicy
         $roleName = is_object($user->role) ? (string) ($user->role->name ?? '') : (string) $user->role;
 
         return in_array($roleName, $roles, true);
+    }
+
+    private function ownsResource(User $user, Client $client): bool
+    {
+        $ownerId = (int) ($client->created_by ?? 0);
+
+        if ($ownerId > 0) {
+            return $ownerId === (int) $user->id;
+        }
+
+        if ($client->relationLoaded('user') && $client->user !== null) {
+            return (int) ($client->user->approved_by ?? 0) === (int) $user->id;
+        }
+
+        $client->loadMissing('user:id,approved_by');
+
+        return (int) ($client->user?->approved_by ?? 0) === (int) $user->id;
     }
 }

@@ -128,6 +128,16 @@ class Trip extends Model
         return $this->reloadHistory();
     }
 
+    public function currentVehicleLocation(): HasOne
+    {
+        return $this->hasOne(CurrentVehicleLocation::class, 'trip_id');
+    }
+
+    public function vehicleLocationHistories(): HasMany
+    {
+        return $this->hasMany(VehicleLocationHistory::class, 'trip_id');
+    }
+
     public function notifications(): HasMany
     {
         return $this->hasMany(TripNotification::class, 'trip_id');

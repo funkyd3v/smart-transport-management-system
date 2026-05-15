@@ -26,22 +26,38 @@ class DriverPolicy
 
     public function update(User $user, Driver $driver): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $driver);
     }
 
     public function delete(User $user, Driver $driver): bool
     {
-        return $this->hasRole($user, ['admin']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $driver);
     }
 
     public function toggleStatus(User $user, Driver $driver): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $driver);
     }
 
     public function toggleApproval(User $user, Driver $driver): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $driver);
     }
 
     /**
@@ -52,5 +68,22 @@ class DriverPolicy
         $roleName = is_object($user->role) ? (string) ($user->role->name ?? '') : (string) $user->role;
 
         return in_array($roleName, $roles, true);
+    }
+
+    private function ownsResource(User $user, Driver $driver): bool
+    {
+        $ownerId = (int) ($driver->created_by ?? 0);
+
+        if ($ownerId > 0) {
+            return $ownerId === (int) $user->id;
+        }
+
+        if ($driver->relationLoaded('user') && $driver->user !== null) {
+            return (int) ($driver->user->approved_by ?? 0) === (int) $user->id;
+        }
+
+        $driver->loadMissing('user:id,approved_by');
+
+        return (int) ($driver->user?->approved_by ?? 0) === (int) $user->id;
     }
 }

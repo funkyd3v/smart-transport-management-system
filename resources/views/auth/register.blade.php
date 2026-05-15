@@ -59,6 +59,26 @@
                         <form method="POST" action="{{ route('register') }}">
                             @csrf
                             <div class="space-y-6">
+                                <!-- Register as Manager or Driver -->
+                                <div>
+                                    <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                        {{ __('Register as') }}<span class="text-error-500">*</span>
+                                    </label>
+                                    <div class="flex gap-8">
+                                        <label class="flex gap-1 items-center cursor-pointer">
+                                            <input type="radio" name="role" value="manager" class="w-4 h-4 text-brand-500 bg-gray-100 border-gray-300 focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-brand-600" required>
+                                            <span class="ml-6 text-sm text-gray-700 dark:text-gray-300">{{ __('Manager') }}</span>
+                                        </label>
+                                        <label class="flex gap-1 items-center cursor-pointer">
+                                            <input type="radio" name="role" value="driver" class="w-4 h-4 text-brand-500 bg-gray-100 border-gray-300 focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-brand-600" required>
+                                            <span class="ml-6 text-sm text-gray-700 dark:text-gray-300">{{ __('Driver') }}</span>
+                                        </label>
+                                    </div>
+                                    @error('role')
+                                        <span class="text-sm text-error-500">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
                                 <!-- Name -->
                                 <div>
                                     <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">

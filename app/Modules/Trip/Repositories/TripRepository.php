@@ -59,6 +59,7 @@ class TripRepository implements TripRepositoryInterface
                 'payments.collector:id,name',
                 'dueRecord',
                 'reloadHistory',
+                'currentVehicleLocation',
             ])
             ->where('ulid', $ulid)
             ->firstOrFail();

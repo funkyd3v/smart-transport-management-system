@@ -1,6 +1,24 @@
 @extends('manager::layouts.app')
 
 @section('content')
+    @php
+        $canUpdateStatus = auth()->user()?->can('updateStatus', $trip) ?? false;
+        $canRecordPayment = auth()->user()?->can('recordPayment', $trip) ?? false;
+        $canRecordExpense = auth()->user()?->can('recordExpense', $trip) ?? false;
+        $currentLocation = $trip->currentVehicleLocation;
+        $isTripInProgress = strtolower(trim((string) $trip->status?->name)) === 'in_progress';
+        $trackingChannelName = 'trips.'.$trip->ulid.'.tracking';
+
+        $initialMapLocation = [
+            'latitude' => $currentLocation ? (float) $currentLocation->latitude : null,
+            'longitude' => $currentLocation ? (float) $currentLocation->longitude : null,
+            'captured_at' => optional($currentLocation?->captured_at)->toIso8601String(),
+            'speed_kph' => $currentLocation && $currentLocation->speed_kph !== null ? (float) $currentLocation->speed_kph : null,
+            'heading_degrees' => $currentLocation?->heading_degrees,
+            'is_online' => $currentLocation?->is_online ?? false,
+        ];
+    @endphp
+
     <x-common.page-breadcrumb pageTitle="Trip Details" />
 
     <div class="space-y-6">
@@ -30,45 +48,75 @@
                 </div>
             </div>
 
+            <div id="trip-tracking-map-card" class="mt-6 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-white/90">Live Vehicle Tracking</h3>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Realtime GPS stream from the assigned driver during active trips.</p>
+                    </div>
+                    <span id="tracking-status-badge" class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">Waiting for live updates</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-0 xl:grid-cols-[2fr_1fr]">
+                    <div>
+                        <div id="trip-live-map" class="h-[360px] w-full"></div>
+                    </div>
+                    <div class="space-y-2 border-t border-gray-100 p-4 text-sm text-gray-700 dark:border-gray-800 dark:text-gray-300 xl:border-l xl:border-t-0">
+                        <p>Trip: <strong>{{ $trip->trip_code }}</strong></p>
+                        <p>Driver: <strong>{{ $trip->driver?->name ?? $trip->driver?->user?->name ?? '-' }}</strong></p>
+                        <p>Truck: <strong>{{ $trip->truck?->truck_number ?? '-' }}</strong></p>
+                        <p>Current Status: <strong>{{ ucfirst(str_replace('_', ' ', (string) $trip->status?->name)) }}</strong></p>
+                        <p>Last GPS Time: <strong id="tracking-last-time">{{ optional($currentLocation?->captured_at)->format('Y-m-d H:i:s') ?? '-' }}</strong></p>
+                        <p>Speed: <strong id="tracking-speed">{{ $currentLocation && $currentLocation->speed_kph !== null ? number_format((float) $currentLocation->speed_kph, 1).' km/h' : '-' }}</strong></p>
+                        <p>Coordinates: <strong id="tracking-coordinates">{{ $currentLocation ? number_format((float) $currentLocation->latitude, 6).', '.number_format((float) $currentLocation->longitude, 6) : '-' }}</strong></p>
+                        @if (! $isTripInProgress)
+                            <p class="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+                                Live tracking starts automatically when the trip status becomes In Progress.
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
             <div class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3" x-data="tripMutations()">
                 <form @submit.prevent="submitStatus" class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                     <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">Update Status</h3>
-                    <select x-model="statusForm.status" class="mb-3 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700">
+                    <select x-model="statusForm.status" @disabled(! $canUpdateStatus) class="mb-3 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500">
                         @foreach (\App\Modules\Trip\Enums\TripStatus::cases() as $status)
                             <option value="{{ $status->value }}">{{ $status->label() }}</option>
                         @endforeach
                     </select>
-                    <textarea x-model="statusForm.note" rows="2" placeholder="Optional note" class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-gray-700"></textarea>
-                    <button class="rounded bg-brand-500 px-4 py-2 text-sm text-white">Save</button>
+                    <textarea x-model="statusForm.note" rows="2" placeholder="Optional note" @disabled(! $canUpdateStatus) class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"></textarea>
+                    <button @disabled(! $canUpdateStatus) title="{{ $canUpdateStatus ? 'Save status' : 'You are not allowed to update status for this trip' }}" class="rounded px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-400 {{ $canUpdateStatus ? 'bg-brand-500' : 'bg-gray-400' }}">Save</button>
                 </form>
 
                 <form @submit.prevent="submitPayment" class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                     <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">Record Payment</h3>
-                    <select x-model="paymentForm.payment_method_id" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700">
+                    <select x-model="paymentForm.payment_method_id" @disabled(! $canRecordPayment) class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500">
                         <option value="">Payment method</option>
                         @foreach ($paymentMethods as $method)
                             <option value="{{ $method->id }}">{{ $method->name }}</option>
                         @endforeach
                     </select>
-                    <input x-model="paymentForm.amount" type="number" step="0.01" min="0" placeholder="Amount" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
-                    <input x-model="paymentForm.payment_date" type="date" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
-                    <input x-model="paymentForm.transaction_reference" placeholder="Reference (optional)" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
-                    <textarea x-model="paymentForm.note" rows="2" placeholder="Note" class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-gray-700"></textarea>
-                    <button class="rounded bg-indigo-600 px-4 py-2 text-sm text-white">Save Payment</button>
+                    <input x-model="paymentForm.amount" type="number" step="0.01" min="0" placeholder="Amount" @disabled(! $canRecordPayment) class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500" />
+                    <input x-model="paymentForm.payment_date" type="date" @disabled(! $canRecordPayment) class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500" />
+                    <input x-model="paymentForm.transaction_reference" placeholder="Reference (optional)" @disabled(! $canRecordPayment) class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500" />
+                    <textarea x-model="paymentForm.note" rows="2" placeholder="Note" @disabled(! $canRecordPayment) class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"></textarea>
+                    <button @disabled(! $canRecordPayment) title="{{ $canRecordPayment ? 'Save payment' : 'You are not allowed to record payment for this trip' }}" class="rounded px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-400 {{ $canRecordPayment ? 'bg-indigo-600' : 'bg-gray-400' }}">Save Payment</button>
                 </form>
 
                 <form @submit.prevent="submitExpense" class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                     <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-white/90">Record Expense</h3>
-                    <select x-model="expenseForm.category_id" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700">
+                    <select x-model="expenseForm.category_id" @disabled(! $canRecordExpense) class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500">
                         <option value="">Expense category</option>
                         @foreach ($expenseCategories as $category)
                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
-                    <input x-model="expenseForm.amount" type="number" step="0.01" min="0" placeholder="Amount" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
-                    <input x-model="expenseForm.expense_date" type="date" class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
-                    <textarea x-model="expenseForm.description" rows="2" placeholder="Description" class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-gray-700"></textarea>
-                    <button class="rounded bg-orange-600 px-4 py-2 text-sm text-white">Save Expense</button>
+                    <input x-model="expenseForm.amount" type="number" step="0.01" min="0" placeholder="Amount" @disabled(! $canRecordExpense) class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500" />
+                    <input x-model="expenseForm.expense_date" type="date" @disabled(! $canRecordExpense) class="mb-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500" />
+                    <textarea x-model="expenseForm.description" rows="2" placeholder="Description" @disabled(! $canRecordExpense) class="mb-3 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"></textarea>
+                    <button @disabled(! $canRecordExpense) title="{{ $canRecordExpense ? 'Save expense' : 'You are not allowed to record expense for this trip' }}" class="rounded px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-400 {{ $canRecordExpense ? 'bg-orange-600' : 'bg-gray-400' }}">Save Expense</button>
                 </form>
             </div>
 
@@ -175,7 +223,22 @@
     </div>
 
     @push('scripts')
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
         <script>
+            (() => {
+                const styleId = 'leaflet-css-trip-live-map';
+
+                if (!document.getElementById(styleId)) {
+                    const styleLink = document.createElement('link');
+                    styleLink.id = styleId;
+                    styleLink.rel = 'stylesheet';
+                    styleLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    styleLink.crossOrigin = '';
+                    styleLink.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+                    document.head.appendChild(styleLink);
+                }
+            })();
+
             function tripMutations() {
                 return {
                     statusForm: { status: '{{ (string) ($trip->status?->name ?? 'created') }}', note: '' },
@@ -257,6 +320,142 @@
                     },
                 }
             }
+
+            (() => {
+                const config = {
+                    tripUlid: @js($trip->ulid),
+                    channel: @js($trackingChannelName),
+                    initialLocation: @js($initialMapLocation),
+                    isTripInProgress: @js($isTripInProgress),
+                };
+
+                const mapContainer = document.getElementById('trip-live-map');
+                const statusBadge = document.getElementById('tracking-status-badge');
+                const lastTime = document.getElementById('tracking-last-time');
+                const speed = document.getElementById('tracking-speed');
+                const coordinates = document.getElementById('tracking-coordinates');
+
+                if (!mapContainer || typeof L === 'undefined') {
+                    return;
+                }
+
+                const hasInitial = config.initialLocation.latitude !== null && config.initialLocation.longitude !== null;
+                const defaultCenter = hasInitial
+                    ? [config.initialLocation.latitude, config.initialLocation.longitude]
+                    : [23.8103, 90.4125];
+
+                const map = L.map(mapContainer, {
+                    zoomControl: true,
+                    scrollWheelZoom: true,
+                }).setView(defaultCenter, hasInitial ? 14 : 6);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors',
+                }).addTo(map);
+
+                const marker = L.circleMarker(defaultCenter, {
+                    radius: 8,
+                    color: '#15803d',
+                    fillColor: '#22c55e',
+                    fillOpacity: 0.95,
+                    weight: 2,
+                }).addTo(map);
+
+                function setStatus(text, color) {
+                    if (!statusBadge) {
+                        return;
+                    }
+
+                    statusBadge.textContent = text;
+                    statusBadge.className = `inline-flex rounded-full px-3 py-1 text-xs font-medium ${color}`;
+                }
+
+                function applyLocation(location, shouldPan = true) {
+                    if (!location || location.latitude === null || location.longitude === null) {
+                        return;
+                    }
+
+                    const point = [location.latitude, location.longitude];
+                    marker.setLatLng(point);
+
+                    const isOnline = Boolean(location.is_online);
+                    marker.setStyle({
+                        color: isOnline ? '#15803d' : '#b91c1c',
+                        fillColor: isOnline ? '#22c55e' : '#ef4444',
+                    });
+
+                    if (shouldPan) {
+                        map.panTo(point, {
+                            animate: true,
+                            duration: 0.8,
+                        });
+                    }
+
+                    const popupLines = [
+                        `<strong>Trip ${config.tripUlid}</strong>`,
+                        `Lat/Lng: ${Number(location.latitude).toFixed(6)}, ${Number(location.longitude).toFixed(6)}`,
+                        `Speed: ${location.speed_kph !== null ? Number(location.speed_kph).toFixed(1) + ' km/h' : '-'}`,
+                        `Heading: ${location.heading_degrees ?? '-'}`,
+                        `Captured: ${location.captured_at ?? '-'}`,
+                    ];
+
+                    marker.bindPopup(popupLines.join('<br>'));
+
+                    if (coordinates) {
+                        coordinates.textContent = `${Number(location.latitude).toFixed(6)}, ${Number(location.longitude).toFixed(6)}`;
+                    }
+
+                    if (speed) {
+                        speed.textContent = location.speed_kph !== null ? `${Number(location.speed_kph).toFixed(1)} km/h` : '-';
+                    }
+
+                    if (lastTime) {
+                        lastTime.textContent = location.captured_at ?? '-';
+                    }
+
+                    setStatus(
+                        isOnline ? 'Live' : 'Offline',
+                        isOnline
+                            ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300'
+                            : 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300'
+                    );
+                }
+
+                if (hasInitial) {
+                    applyLocation(config.initialLocation, false);
+                } else {
+                    setStatus(
+                        config.isTripInProgress ? 'Waiting for first GPS fix' : 'Tracking not started',
+                        'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                    );
+                }
+
+                if (!window.Echo) {
+                    return;
+                }
+
+                const channel = window.Echo.private(config.channel);
+
+                channel.listen('.trip.location.updated', (event) => {
+                    applyLocation(event.location, true);
+                });
+
+                channel.listen('.trip.tracking.stopped', (event) => {
+                    setStatus('Tracking stopped', 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300');
+
+                    if (event && event.message) {
+                        Toastify({
+                            text: event.message,
+                            duration: 3500,
+                            gravity: 'top',
+                            position: 'right',
+                            backgroundColor: '#f59e0b',
+                            stopOnFocus: true,
+                        }).showToast();
+                    }
+                });
+            })();
         </script>
     @endpush
 @endsection

@@ -34,6 +34,10 @@ class TruckRepository implements TruckRepositoryInterface
 
         $query->select(["{$table}.id", "{$table}.truck_number", "{$table}.created_at"]);
 
+        if (Schema::hasColumn($table, 'created_by')) {
+            $query->addSelect("{$table}.created_by");
+        }
+
         if ($hasTruckType) {
             $query->addSelect("{$table}.truck_type");
         } elseif ($hasModel) {
@@ -241,6 +245,10 @@ class TruckRepository implements TruckRepositoryInterface
     {
         $table = $truck?->getTable() ?? (new Truck)->getTable();
         $mapped = [];
+
+        if ($truck === null && Schema::hasColumn($table, 'created_by')) {
+            $mapped['created_by'] = $data['created_by'] ?? null;
+        }
 
         if (Schema::hasColumn($table, 'truck_number')) {
             $mapped['truck_number'] = $data['truck_number'] ?? $truck?->truck_number;

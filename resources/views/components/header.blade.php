@@ -15,7 +15,7 @@
         </div>
 
         <div class="nav-ctas">
-            <a href="#" class="nav-signin">Sign In</a>
+            <a href="/login" class="nav-signin">Sign In</a>
             <a href="#contact" class="nav-demo">Contact Us →</a>
         </div>
 
@@ -31,8 +31,8 @@
         <a href="#contact">Contact</a>
 
         <div class="mobile-ctas">
-            <a href="#" class="m-signin">Sign In</a>
-            <a href="#contact" class="m-demo">Get Demo</a>
+            <a href="/login" class="m-signin">Sign In</a>
+            <a href="#contact" class="m-demo">Contact Us →</a>
         </div>
     </div>
 </nav>

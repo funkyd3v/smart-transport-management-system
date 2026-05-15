@@ -2,6 +2,7 @@
 
 namespace App\Modules\Truck\Models;
 
+use App\Modules\Auth\Models\User;
 use App\Modules\Driver\Models\Driver;
 use App\Modules\Shared\Traits\HasUlid;
 use App\Modules\Trip\Models\Trip;
@@ -16,6 +17,7 @@ class Truck extends Model
 
     protected $fillable = [
         'ulid',
+        'created_by',
         'truck_number',
         'model',
         'brand',
@@ -40,6 +42,11 @@ class Truck extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(TruckStatus::class, 'status_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function currentDriver(): BelongsTo

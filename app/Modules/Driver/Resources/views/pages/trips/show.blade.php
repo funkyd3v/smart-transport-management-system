@@ -18,9 +18,11 @@
     <div class="space-y-6" x-data="driverTripShow({
         status: @js($statusValue ?: 'created'),
         tripCode: @js($trip->trip_code),
+        tripUlid: @js($trip->ulid),
         updateStatusUrl: @js(route('driver.trips.update-status', $trip)),
         expenseUrl: @js(route('driver.trips.expenses.store', $trip)),
         reloadUrl: @js(route('driver.trips.reloads.store', $trip)),
+        trackingUrl: @js(route('driver.api.trips.location.store', $trip)),
         initialSummary: @js($summary),
         openModal: @js(request('modal')),
     })" x-init="init()">
@@ -181,6 +183,8 @@
                     updateStatusUrl: config.updateStatusUrl,
                     expenseUrl: config.expenseUrl,
                     reloadUrl: config.reloadUrl,
+                    trackingUrl: config.trackingUrl,
+                    tripUlid: config.tripUlid,
                     financialSummary: config.initialSummary,
                     showExpenseModal: false,
                     showReloadModal: false,
@@ -189,6 +193,11 @@
                     reloadSubmitting: false,
                     expenseErrors: {},
                     reloadErrors: {},
+                    trackingWatcherId: null,
+                    trackingIntervalId: null,
+                    lastSentAt: 0,
+                    lastSentKey: '',
+                    lastTrackingErrorAt: 0,
                     expenseForm: {
                         category: 'fuel',
                         amount: '',
@@ -209,6 +218,12 @@
                         if (config.openModal === 'reload') {
                             this.openReloadModal();
                         }
+
+                        this.updateTrackingLifecycle();
+
+                        window.addEventListener('beforeunload', () => {
+                            this.stopTracking();
+                        });
                     },
                     statusLabel() {
                         const labels = {
@@ -280,6 +295,7 @@
                         }
 
                         this.status = data.trip?.status ?? targetStatus;
+                        this.updateTrackingLifecycle();
 
                         Toastify({
                             text: data.message ?? 'Trip status updated successfully.',
@@ -290,6 +306,155 @@
                             stopOnFocus: true,
                         }).showToast();
                         this.statusActionSubmitting = false;
+                    },
+                    isTrackingEnabledStatus() {
+                        return this.status === 'in_progress';
+                    },
+                    getDeviceId() {
+                        const key = 'driver_tracking_device_id';
+                        let value = localStorage.getItem(key);
+
+                        if (value) {
+                            return value;
+                        }
+
+                        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                            value = window.crypto.randomUUID();
+                        } else {
+                            value = `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+                        }
+
+                        localStorage.setItem(key, value);
+
+                        return value;
+                    },
+                    updateTrackingLifecycle() {
+                        if (this.isTrackingEnabledStatus()) {
+                            this.startTracking();
+                            return;
+                        }
+
+                        this.stopTracking();
+                    },
+                    startTracking() {
+                        if (!navigator.geolocation || this.trackingWatcherId !== null) {
+                            return;
+                        }
+
+                        this.trackingWatcherId = navigator.geolocation.watchPosition(
+                            (position) => {
+                                this.handlePosition(position);
+                            },
+                            () => {
+                                const now = Date.now();
+
+                                if ((now - this.lastTrackingErrorAt) < 20000) {
+                                    return;
+                                }
+
+                                this.lastTrackingErrorAt = now;
+
+                                Toastify({
+                                    text: 'Unable to fetch GPS location. Please check location permission.',
+                                    duration: 3500,
+                                    gravity: 'top',
+                                    position: 'right',
+                                    backgroundColor: '#ef4444',
+                                    stopOnFocus: true,
+                                }).showToast();
+                            },
+                            {
+                                enableHighAccuracy: true,
+                                timeout: 10000,
+                                maximumAge: 3000,
+                            },
+                        );
+
+                        this.trackingIntervalId = window.setInterval(() => {
+                            if (!this.isTrackingEnabledStatus()) {
+                                return;
+                            }
+
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => this.handlePosition(position),
+                                () => {
+                                    // Ignore transient failures and continue trying.
+                                },
+                                {
+                                    enableHighAccuracy: true,
+                                    timeout: 10000,
+                                    maximumAge: 5000,
+                                },
+                            );
+                        }, 10000);
+                    },
+                    stopTracking() {
+                        if (this.trackingWatcherId !== null) {
+                            navigator.geolocation.clearWatch(this.trackingWatcherId);
+                            this.trackingWatcherId = null;
+                        }
+
+                        if (this.trackingIntervalId !== null) {
+                            clearInterval(this.trackingIntervalId);
+                            this.trackingIntervalId = null;
+                        }
+                    },
+                    handlePosition(position) {
+                        if (!this.isTrackingEnabledStatus()) {
+                            return;
+                        }
+
+                        const coords = position.coords;
+                        const now = Date.now();
+                        const key = `${Number(coords.latitude).toFixed(5)}:${Number(coords.longitude).toFixed(5)}`;
+
+                        if (key === this.lastSentKey && (now - this.lastSentAt) < 5000) {
+                            return;
+                        }
+
+                        this.lastSentAt = now;
+                        this.lastSentKey = key;
+
+                        this.sendLocation({
+                            latitude: Number(coords.latitude),
+                            longitude: Number(coords.longitude),
+                            accuracy_meters: Number.isFinite(coords.accuracy) ? Number(coords.accuracy) : null,
+                            speed_kph: Number.isFinite(coords.speed) && coords.speed !== null ? Number(coords.speed) * 3.6 : null,
+                            heading_degrees: Number.isFinite(coords.heading) && coords.heading !== null
+                                ? Math.max(0, Math.min(359, Math.round(coords.heading)))
+                                : null,
+                            captured_at: new Date(position.timestamp || Date.now()).toISOString(),
+                            device_id: this.getDeviceId(),
+                            source: 'driver_web',
+                        });
+                    },
+                    async sendLocation(payload) {
+                        try {
+                            const response = await fetch(this.trackingUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(payload),
+                            });
+
+                            if (response.status === 401 || response.status === 403) {
+                                this.stopTracking();
+                                return;
+                            }
+
+                            if (response.status === 202) {
+                                const data = await response.json();
+
+                                if ((data.message || '').toLowerCase().includes('not active')) {
+                                    this.stopTracking();
+                                }
+                            }
+                        } catch (_error) {
+                            // Ignore temporary network errors to keep the tracker resilient.
+                        }
                     },
                     openExpenseModal() {
                         this.expenseErrors = {};

@@ -45,6 +45,7 @@ class DriverService
 
             $driver = new Driver;
             $driver->forceFill([
+                'created_by' => (int) $request->user()->id,
                 'user_id' => $user->id,
                 'license_number' => $validated['license_number'] ?? null,
                 'nid_number' => $validated['nid_number'] ?? null,

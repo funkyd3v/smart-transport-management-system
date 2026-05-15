@@ -51,6 +51,21 @@
                                         class="rounded-lg border px-3 py-1.5 text-xs {{ $isOnTrip ? 'cursor-not-allowed border-gray-200 text-gray-400 dark:border-gray-700 dark:text-gray-500' : 'border-yellow-200 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-500/40 dark:text-yellow-300 dark:hover:bg-yellow-500/10' }}"
                                     >Under Workshop</button>
                                 </div>
+                            @else
+                                <div class="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        disabled
+                                        title="You are not allowed to change status for this truck"
+                                        class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500"
+                                    >Idle</button>
+                                    <button
+                                        type="button"
+                                        disabled
+                                        title="You are not allowed to change status for this truck"
+                                        class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500"
+                                    >Under Workshop</button>
+                                </div>
                             @endcan
                         </td>
                         <td class="px-5 py-4">
@@ -63,6 +78,8 @@
                                     @else
                                         <a href="{{ route('manager.trucks.edit', $truck) }}" class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">Edit</a>
                                     @endif
+                                @else
+                                    <button type="button" disabled title="You are not allowed to edit this truck" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Edit</button>
                                 @endcan
 
                                 @can('delete', $truck)
@@ -75,6 +92,8 @@
                                     >
                                         Delete
                                     </button>
+                                @else
+                                    <button type="button" disabled title="You are not allowed to delete this truck" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Delete</button>
                                 @endcan
                             </div>
                         </td>

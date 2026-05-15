@@ -45,21 +45,35 @@
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('manager.clients.show', $client) }}" class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">View</a>
-                                <a href="{{ route('manager.clients.edit', $client) }}" class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">Edit</a>
-                                <button
-                                    type="button"
-                                    @click="window.toggleClientStatus({{ $client->id }}, (nextStatus) => { status = nextStatus; })"
-                                    class="rounded-lg border border-brand-200 px-3 py-1.5 text-xs text-brand-600 hover:bg-brand-50 dark:border-brand-500/40 dark:text-brand-300 dark:hover:bg-brand-500/10"
-                                >
-                                    Toggle Status
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="window.deleteClient({{ $client->id }})"
-                                    class="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
-                                >
-                                    Delete
-                                </button>
+                                @can('update', $client)
+                                    <a href="{{ route('manager.clients.edit', $client) }}" class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">Edit</a>
+                                @else
+                                    <button type="button" disabled title="You are not allowed to edit this client" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Edit</button>
+                                @endcan
+
+                                @can('toggleStatus', $client)
+                                    <button
+                                        type="button"
+                                        @click="window.toggleClientStatus({{ $client->id }}, (nextStatus) => { status = nextStatus; })"
+                                        class="rounded-lg border border-brand-200 px-3 py-1.5 text-xs text-brand-600 hover:bg-brand-50 dark:border-brand-500/40 dark:text-brand-300 dark:hover:bg-brand-500/10"
+                                    >
+                                        Toggle Status
+                                    </button>
+                                @else
+                                    <button type="button" disabled title="You are not allowed to change status for this client" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Toggle Status</button>
+                                @endcan
+
+                                @can('delete', $client)
+                                    <button
+                                        type="button"
+                                        @click="window.deleteClient({{ $client->id }})"
+                                        class="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
+                                    >
+                                        Delete
+                                    </button>
+                                @else
+                                    <button type="button" disabled title="You are not allowed to delete this client" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Delete</button>
+                                @endcan
                             </div>
                         </td>
                     </tr>

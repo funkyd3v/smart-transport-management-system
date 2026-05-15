@@ -18,6 +18,7 @@ class Client extends Model
 
     protected $fillable = [
         'ulid',
+        'created_by',
         'user_id',
         'category_id',
         'company_name',
@@ -46,6 +47,11 @@ class Client extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function category(): BelongsTo

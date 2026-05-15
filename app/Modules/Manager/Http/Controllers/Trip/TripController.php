@@ -19,6 +19,7 @@ use App\Modules\Trip\DTOs\UpdateTripStatusDTO;
 use App\Modules\Trip\Models\Trip;
 use App\Modules\Trip\Models\TripStatus;
 use App\Modules\Trip\Repositories\Contracts\TripRepositoryInterface;
+use App\Modules\Truck\Models\Truck;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,7 +52,7 @@ final class TripController extends Controller
             'trips' => $trips,
             'statuses' => TripStatus::query()->orderBy('name')->get(),
             'clients' => Client::query()->with('user')->orderBy('id')->get(),
-            'trucks' => app(TruckRepositoryInterface::class)->getAssignableTrucks(),
+            'trucks' => Truck::query()->orderBy('truck_number')->get(['id', 'truck_number']),
             'filters' => $filters,
         ]);
     }

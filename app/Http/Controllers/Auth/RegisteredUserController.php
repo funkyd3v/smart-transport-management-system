@@ -28,19 +28,28 @@ class RegisteredUserController extends Controller
      */
     public function store(RegisterRequest $request): RedirectResponse
     {
-        $request->validated();
+        $validated = $request->validated();
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'client',
-        ]);
+        $user = new User;
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->password = Hash::make($validated['password']);
+        $user->role = $validated['role'];
+        $user->phone = $this->generateUniqueRegistrationPhone();
+        $user->save();
 
         event(new Registered($user));
-
         Auth::login($user);
 
         return redirect(route('home', absolute: false));
+    }
+
+    private function generateUniqueRegistrationPhone(): string
+    {
+        do {
+            $phone = '9'.str_pad((string) random_int(0, 99999999999999), 14, '0', STR_PAD_LEFT);
+        } while (User::query()->where('phone', $phone)->exists());
+
+        return $phone;
     }
 }

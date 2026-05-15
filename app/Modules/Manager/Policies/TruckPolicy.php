@@ -26,17 +26,29 @@ class TruckPolicy
 
     public function update(User $user, Truck $truck): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $truck);
     }
 
     public function delete(User $user, Truck $truck): bool
     {
-        return $this->hasRole($user, ['admin']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $truck);
     }
 
     public function updateStatus(User $user, Truck $truck): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && $this->ownsResource($user, $truck);
     }
 
     /**
@@ -47,5 +59,10 @@ class TruckPolicy
         $roleName = is_object($user->role) ? (string) ($user->role->name ?? '') : (string) $user->role;
 
         return in_array($roleName, $roles, true);
+    }
+
+    private function ownsResource(User $user, Truck $truck): bool
+    {
+        return (int) ($truck->created_by ?? 0) === (int) $user->id;
     }
 }

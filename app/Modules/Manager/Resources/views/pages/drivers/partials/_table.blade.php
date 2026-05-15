@@ -57,7 +57,12 @@
                         <td class="px-5 py-4">
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('manager.drivers.show', $driver) }}" class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">View</a>
-                                <a href="{{ route('manager.drivers.edit', $driver) }}" class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">Edit</a>
+                                @can('update', $driver)
+                                    <a href="{{ route('manager.drivers.edit', $driver) }}" class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5">Edit</a>
+                                @else
+                                    <button type="button" disabled title="You are not allowed to edit this driver" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Edit</button>
+                                @endcan
+
                                 @can('toggleStatus', $driver)
                                     <button
                                         type="button"
@@ -66,7 +71,10 @@
                                     >
                                         Toggle Status
                                     </button>
+                                @else
+                                    <button type="button" disabled title="You are not allowed to change status for this driver" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Toggle Status</button>
                                 @endcan
+
                                 @can('toggleApproval', $driver)
                                     <button
                                         type="button"
@@ -75,7 +83,10 @@
                                     >
                                         Toggle Approval
                                     </button>
+                                @else
+                                    <button type="button" disabled title="You are not allowed to change approval for this driver" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Toggle Approval</button>
                                 @endcan
+
                                 @can('delete', $driver)
                                     <button
                                         type="button"
@@ -84,6 +95,8 @@
                                     >
                                         Delete
                                     </button>
+                                @else
+                                    <button type="button" disabled title="You are not allowed to delete this driver" class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Delete</button>
                                 @endcan
                             </div>
                         </td>

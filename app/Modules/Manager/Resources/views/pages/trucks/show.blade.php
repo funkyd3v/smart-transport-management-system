@@ -52,6 +52,25 @@
                                 Under Workshop
                             </button>
                         </div>
+                    @else
+                        <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                disabled
+                                title="You are not allowed to change status for this truck"
+                                class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500"
+                            >
+                                Idle
+                            </button>
+                            <button
+                                type="button"
+                                disabled
+                                title="You are not allowed to change status for this truck"
+                                class="cursor-not-allowed rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500"
+                            >
+                                Under Workshop
+                            </button>
+                        </div>
                     @endcan
                 </div>
             </div>

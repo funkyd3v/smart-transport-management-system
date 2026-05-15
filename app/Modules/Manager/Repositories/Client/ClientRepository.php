@@ -34,7 +34,7 @@ class ClientRepository implements ClientRepositoryInterface
         $hasUserId = Schema::hasColumn($table, 'user_id');
         $hasCategoryId = Schema::hasColumn($table, 'category_id');
 
-        $shouldJoinUsers = $hasUserId && (! $hasName || ! $hasContactNumber);
+        $shouldJoinUsers = $hasUserId && (! $hasName || ! $hasContactNumber || ! $hasStatus);
         $shouldJoinClientCategories = ! $hasClientType && $hasCategoryId;
 
         if ($shouldJoinUsers) {
@@ -46,6 +46,14 @@ class ClientRepository implements ClientRepositoryInterface
         }
 
         $query->select(["{$table}.id", "{$table}.created_at"]);
+
+        if (Schema::hasColumn($table, 'created_by')) {
+            $query->addSelect("{$table}.created_by");
+        }
+
+        if ($hasUserId) {
+            $query->addSelect("{$table}.user_id");
+        }
 
         if ($hasName) {
             $query->addSelect("{$table}.name");
@@ -87,6 +95,8 @@ class ClientRepository implements ClientRepositoryInterface
 
         if ($hasStatus) {
             $query->addSelect("{$table}.status");
+        } elseif ($shouldJoinUsers) {
+            $query->selectRaw("CASE WHEN users.is_active = 1 THEN 'active' ELSE 'inactive' END as status");
         } else {
             $query->selectRaw("'active' as status");
         }
@@ -106,8 +116,12 @@ class ClientRepository implements ClientRepositoryInterface
             );
         }
 
-        if ($hasStatus && filled($filters['status'] ?? null)) {
-            $query->where("{$table}.status", (string) $filters['status']);
+        if (filled($filters['status'] ?? null)) {
+            if ($hasStatus) {
+                $query->where("{$table}.status", (string) $filters['status']);
+            } elseif ($shouldJoinUsers) {
+                $query->where('users.is_active', (string) $filters['status'] === 'active');
+            }
         }
 
         if (filled($filters['search'] ?? null)) {
@@ -225,6 +239,7 @@ class ClientRepository implements ClientRepositoryInterface
             );
 
             $legacyData = [
+                'created_by' => $data['created_by'] ?? null,
                 'user_id' => $user->id,
                 'category_id' => $category->id,
                 'company_name' => $data['name'] ?? null,
@@ -242,7 +257,7 @@ class ClientRepository implements ClientRepositoryInterface
         }
 
         $client = new Client;
-        $client->forceFill($data);
+        $client->forceFill($data + ['created_by' => $data['created_by'] ?? null]);
         $client->save();
 
         return $client->refresh();

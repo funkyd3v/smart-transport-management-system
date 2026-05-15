@@ -30,8 +30,12 @@ class TripPolicy
 
     public function update(User $user, Trip $trip): bool
     {
-        if ($this->hasRole($user, ['admin', 'manager'])) {
+        if ($this->hasRole($user, ['admin'])) {
             return true;
+        }
+
+        if ($this->hasRole($user, ['manager'])) {
+            return (int) $trip->created_by === (int) $user->id;
         }
 
         return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
@@ -44,13 +48,21 @@ class TripPolicy
 
     public function updateStatus(User $user, Trip $trip): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && (int) $trip->created_by === (int) $user->id;
     }
 
     public function recordExpense(User $user, Trip $trip): bool
     {
-        if ($this->hasRole($user, ['admin', 'manager'])) {
+        if ($this->hasRole($user, ['admin'])) {
             return true;
+        }
+
+        if ($this->hasRole($user, ['manager'])) {
+            return (int) $trip->created_by === (int) $user->id;
         }
 
         return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
@@ -58,8 +70,12 @@ class TripPolicy
 
     public function addReloadHistory(User $user, Trip $trip): bool
     {
-        if ($this->hasRole($user, ['admin', 'manager'])) {
+        if ($this->hasRole($user, ['admin'])) {
             return true;
+        }
+
+        if ($this->hasRole($user, ['manager'])) {
+            return (int) $trip->created_by === (int) $user->id;
         }
 
         return $this->hasRole($user, ['driver']) && (int) $trip->driver_id === (int) ($user->driver?->id ?? 0);
@@ -67,12 +83,22 @@ class TripPolicy
 
     public function generateInvoice(User $user, Trip $trip): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']) && ! $trip->isInvoiced();
+        if ($this->hasRole($user, ['admin'])) {
+            return ! $trip->isInvoiced();
+        }
+
+        return $this->hasRole($user, ['manager'])
+            && (int) $trip->created_by === (int) $user->id
+            && ! $trip->isInvoiced();
     }
 
     public function recordPayment(User $user, Trip $trip): bool
     {
-        return $this->hasRole($user, ['admin', 'manager']);
+        if ($this->hasRole($user, ['admin'])) {
+            return true;
+        }
+
+        return $this->hasRole($user, ['manager']) && (int) $trip->created_by === (int) $user->id;
     }
 
     /**

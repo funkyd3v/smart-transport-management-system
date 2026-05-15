@@ -48,7 +48,7 @@ class TruckController extends Controller
     public function store(StoreTruckRequest $request): JsonResponse
     {
         try {
-            $this->truckService->create($request->validated());
+            $this->truckService->create($request->validated() + ['created_by' => (int) $request->user()->id]);
         } catch (HttpException $exception) {
             return response()->json([
                 'message' => $exception->getMessage(),

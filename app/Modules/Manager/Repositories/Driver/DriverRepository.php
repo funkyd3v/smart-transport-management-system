@@ -36,6 +36,14 @@ class DriverRepository implements DriverRepositoryInterface
 
         $query->select(["{$table}.id", "{$table}.driving_type", "{$table}.joining_date", "{$table}.created_at"]);
 
+        if ($hasCreatedBy) {
+            $query->addSelect("{$table}.created_by");
+        }
+
+        if ($hasUserId) {
+            $query->addSelect("{$table}.user_id");
+        }
+
         if ($hasName) {
             $query->addSelect("{$table}.name");
         } elseif ($shouldJoinUsers) {
@@ -181,6 +189,7 @@ class DriverRepository implements DriverRepositoryInterface
 
             $driver = new Driver;
             $driver->forceFill([
+                'created_by' => $data['created_by'] ?? null,
                 'user_id' => $user->id,
                 'license_number' => $data['license_number'] ?? null,
                 'nid_number' => $data['nid_number'] ?? null,
@@ -194,7 +203,7 @@ class DriverRepository implements DriverRepositoryInterface
         }
 
         $driver = new Driver;
-        $driver->forceFill($data);
+        $driver->forceFill($data + ['created_by' => $data['created_by'] ?? null]);
         $driver->save();
 
         return $driver->refresh();
