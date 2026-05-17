@@ -1,12 +1,24 @@
 <div>
     <!-- Be present above all else. - Naval Ravikant -->
 </div>
-<section id="modules" style="padding: 96px 40px;">
-    <div style="max-width: 1280px; margin: 0 auto;">
+<section id="modules" class="modules-section" style="padding: 96px 40px;">
+    <div class="modules-sky" aria-hidden="true">
+        <span class="modules-glow modules-glow-a"></span>
+        <span class="modules-glow modules-glow-b"></span>
+        <span class="shooting-star shooting-star-1"></span>
+        <span class="shooting-star shooting-star-2"></span>
+        <span class="shooting-star shooting-star-3"></span>
+        <span class="star star-1"></span>
+        <span class="star star-2"></span>
+        <span class="star star-3"></span>
+        <span class="star star-4"></span>
+        <span class="star star-5"></span>
+    </div>
+    <div style="max-width: 1280px; margin: 0 auto; position: relative; z-index: 1;">
         <div class="reveal" style="text-align: center; margin-bottom: 60px;">
             <div class="section-label" style="justify-content: center;">
                 <i class="fas fa-cubes" style="color: #B45309; font-size: 11px;"></i>
-                <span>System Modules</span>
+                <span>All Services</span>
             </div>
             <h2 class="section-title" style="margin-bottom: 16px;">
                 Everything Your Transport<br><span class="text-gradient">Business Needs</span>

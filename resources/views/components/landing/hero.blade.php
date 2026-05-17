@@ -8,7 +8,7 @@
     <div class="hero-inner">
         <div>
             <h1 class="hero-h1 reveal" style="transition-delay: 0.08s;">
-                Drive Your<br>Business<br><span class="text-gradient">Forward</span>
+                Drive Your<br>Business <span class="text-gradient">Forward</span>
             </h1>
 
             <p class="hero-sub reveal" style="transition-delay: 0.16s;">
@@ -17,32 +17,32 @@
             </p>
 
             <div class="hero-ctas reveal" style="transition-delay: 0.22s;">
-                <a href="#contact" class="btn-primary">
+                {{-- <a href="#contact" class="btn-primary">
                     <i class="fas fa-play-circle" style="font-size: 15px;"></i> Request Free Demo
-                </a>
+                </a> --}}
                 <a href="#modules" class="btn-outline">
-                    <i class="fas fa-compass" style="font-size: 14px;"></i> Explore Modules
+                    <i class="fas fa-compass" style="font-size: 14px;"></i> Explore Services
                 </a>
             </div>
 
             <div class="hero-stats reveal" style="transition-delay: 0.30s;">
-                <div class="hero-stat">
+                {{-- <div class="hero-stat">
                     <div class="hero-stat-num">9+</div>
                     <div class="hero-stat-label">Core Modules</div>
-                </div>
-                <div class="stat-sep"></div>
+                </div> --}}
+                {{-- <div class="stat-sep"></div> --}}
                 <div class="hero-stat">
                     <div class="hero-stat-num">100%</div>
                     <div class="hero-stat-label">Digital Workflow</div>
                 </div>
-                <div class="stat-sep"></div>
-                <div class="hero-stat">
+                {{-- <div class="stat-sep"></div> --}}
+                {{-- <div class="hero-stat">
                     <div class="hero-stat-num">4</div>
                     <div class="hero-stat-label">User Roles</div>
-                </div>
+                </div> --}}
                 <div class="stat-sep"></div>
                 <div class="hero-stat">
-                    <div class="hero-stat-num">30d</div>
+                    <div class="hero-stat-num">3d</div>
                     <div class="hero-stat-label">Fast Delivery</div>
                 </div>
             </div>

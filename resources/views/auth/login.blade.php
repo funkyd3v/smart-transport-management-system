@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Login | {{ config('app.name', 'Laravel') }}</title>
-    <link rel="icon" href="favicon.ico">
+    <link rel="icon" href="{{ asset('images/logistics/truck.png') }}" type="image/png">
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     
     <style>
@@ -26,13 +26,6 @@
     </style>
 </head>
 <body class="bg-white dark:bg-gray-900">
-    <!-- Preloader -->
-    <div x-data="{ loaded: true }" x-show="loaded"
-         x-init="window.addEventListener('DOMContentLoaded', () => {setTimeout(() => loaded = false, 500)})"
-         class="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-white dark:bg-black">
-        <div class="h-16 w-16 animate-spin rounded-full border-4 border-solid border-[#DF7F07] border-t-transparent"></div>
-    </div>
-
     <!-- Page Wrapper -->
     <div class="relative p-6 bg-white dark:bg-gray-900 sm:p-0">
         <div class="relative flex flex-col justify-center w-full h-screen dark:bg-gray-900 sm:p-0 lg:flex-row">

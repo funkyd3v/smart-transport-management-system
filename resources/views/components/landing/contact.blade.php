@@ -8,18 +8,18 @@
                 <i class="fas fa-envelope" style="color: #B45309; font-size: 11px;"></i>
                 <span>Contact Us</span>
             </div>
-            <h2 class="section-title" style="margin-bottom: 14px;">Request a <span class="text-gradient">Live Demo</span></h2>
+            <h2 class="section-title" style="margin-bottom: 14px;">Feel Free<span class="text-gradient"> to Contact Us</span></h2>
             <p class="section-sub" style="margin: 0 auto;">Fill in your details and our team will reach out within 24 hours — no commitment required.</p>
         </div>
 
         <div class="contact-card reveal" style="transition-delay: 0.1s;">
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Full Name</label>
+                    <label class="form-label">Full Name <span style="color: #EF4444;">*</span></label>
                     <input type="text" class="form-input" placeholder="Your name">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Phone Number</label>
+                    <label class="form-label">Phone Number <span style="color: #EF4444;">*</span></label>
                     <input type="tel" class="form-input" placeholder="+880 XXXX XXXXXX">
                 </div>
             </div>

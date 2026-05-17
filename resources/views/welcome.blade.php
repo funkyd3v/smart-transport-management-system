@@ -1,6 +1,6 @@
 @extends('layouts.site')
 
-@section('title', 'Dashboard')
+@section('title', 'TransCorp | Smart Transport Management System')
 
 @push('styles')
     <x-landing.styles />
@@ -16,6 +16,6 @@
     <x-landing.modules />
     <x-landing.workflow />
     <x-landing.benefits />
-    <x-landing.cta-banner />
+    {{-- <x-landing.cta-banner /> --}}
     <x-landing.contact />
 @endsection

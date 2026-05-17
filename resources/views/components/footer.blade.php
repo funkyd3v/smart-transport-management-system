@@ -22,7 +22,7 @@
         </div>
 
         <div>
-            <div class="footer-col-title">Modules</div>
+            <div class="footer-col-title">Services</div>
 
             <ul class="footer-links">
                 <li><a href="#">Trip Management</a></li>
@@ -40,7 +40,6 @@
             <ul class="footer-links">
                 <li><a href="#">About Us</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="#contact">Book a Demo</a></li>
                 <li><a href="#">Privacy Policy</a></li>
                 <li><a href="#">Terms of Service</a></li>
             </ul>
@@ -48,12 +47,12 @@
     </div>
 
     <div style="border-top: 1px solid rgba(255, 255, 255, 0.06);">
-        <div class="footer-bottom">
+        <div class="text-center" style="padding: 24px 0; font-size: 12px; color: #787b7d; display: flex; flex-direction: column; gap: 6px;">
             <span>©2026 TransCorp. All rights reserved.</span>
-            <span style="display: flex; align-items: center; gap: 6px;">
+            {{-- <span style="display: flex; align-items: center; gap: 6px;">
                 Built with <i class="fas fa-heart" style="color: #F59E0B; font-size: 11px;"></i> for Bangladesh
                 transport businesses
-            </span>
+            </span> --}}
         </div>
     </div>
 </footer>

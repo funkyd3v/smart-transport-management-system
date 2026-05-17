@@ -8,7 +8,7 @@
         </a>
 
         <div class="nav-links">
-            <a href="#modules">Modules</a>
+            <a href="#modules">Services</a>
             <a href="#workflow">Workflow</a>
             <a href="#benefits">Why Us</a>
             <a href="#contact">Contact</a>
@@ -25,7 +25,7 @@
     </div>
 
     <div id="mobile-menu">
-        <a href="#modules">Modules</a>
+        <a href="#modules">Services</a>
         <a href="#workflow">Workflow</a>
         <a href="#benefits">Why Us</a>
         <a href="#contact">Contact</a>
