@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Manager\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Manager\Services\DashboardService;
 use Illuminate\Contracts\View\View;
 
@@ -19,6 +20,9 @@ final class DashboardController extends Controller
 
     public function index(): View
     {
+        /** @var User|null $user */
+        $user = request()->user();
+
         return view('manager::dashboard', [
             'totalTrucks' => $this->service->getTotalTrucks(),
             'runningTrips' => $this->service->getRunningTripsCount(),
@@ -28,7 +32,7 @@ final class DashboardController extends Controller
             'todayDue' => $this->service->getTodayDue(),
             'monthlyProfit' => $this->service->getMonthlyProfit(),
             'activeTrips' => $this->service->getActiveTrips(),
-            'topDueClients' => $this->service->getTopDueClients(5),
+            'topDueClients' => $this->service->getTopDueClients(5, $user?->id),
             'totalOutstandingDue' => $this->service->getTotalOutstandingDue(),
             'monthlyFinancials' => $this->service->getMonthlyFinancials(6),
             'paymentMethodBreakdown' => $this->service->getPaymentMethodBreakdown(),

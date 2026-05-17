@@ -219,12 +219,20 @@
                             <div class="text-right">
                                 <p class="text-sm font-semibold text-red-600 dark:text-red-400">{{ $currency((float) ($client['due_amount'] ?? 0)) }}</p>
                                 @php
-                                    $collectRoute = \Illuminate\Support\Facades\Route::has('dues.index') ? route('dues.index', [], [], ['client_id' => (int) ($client['client_id'] ?? 0)]) : null;
+                                    $collectRoute = null;
+
+                                    if (
+                                        !empty($client['can_collect'])
+                                        && !empty($client['collect_trip_ulid'])
+                                        && \Illuminate\Support\Facades\Route::has('manager.trips.show')
+                                    ) {
+                                        $collectRoute = route('manager.trips.show', (string) $client['collect_trip_ulid']);
+                                    }
                                 @endphp
                                 @if ($collectRoute)
                                     <a href="{{ $collectRoute }}" class="mt-2 inline-flex rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10">Collect</a>
                                 @else
-                                    <span class="mt-2 inline-flex cursor-not-allowed rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Collect</span>
+                                    <span class="mt-2 inline-flex cursor-not-allowed rounded-lg border border-gray-200 px-2.5 py-1 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">Not assigned</span>
                                 @endif
                             </div>
                         </div>

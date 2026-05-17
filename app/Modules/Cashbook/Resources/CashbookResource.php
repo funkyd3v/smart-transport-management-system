@@ -9,6 +9,17 @@ class CashbookResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'type' => $this->type?->value ?? $this->type,
+            'amount' => (float) $this->amount,
+            'balance' => (float) $this->balance,
+            'description' => $this->description,
+            'entry_date' => $this->entry_date?->toDateString(),
+            'reference_type' => $this->reference_type,
+            'recorded_by' => $this->recordedBy?->name,
+            'note' => $this->note,
+            'created_at' => $this->created_at,
+        ];
     }
 }

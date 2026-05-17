@@ -13,6 +13,12 @@ class UpdateCashbookRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'type' => ['sometimes', 'in:credit,debit'],
+            'amount' => ['sometimes', 'numeric', 'min:0.01'],
+            'description' => ['sometimes', 'string', 'max:255'],
+            'entry_date' => ['sometimes', 'date'],
+            'note' => ['nullable', 'string'],
+        ];
     }
 }

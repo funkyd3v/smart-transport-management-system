@@ -98,6 +98,11 @@ class TripPolicy
             && ! $this->isCompletionRequested($trip);
     }
 
+    public function addReloadHistory(User $user, Trip $trip): bool
+    {
+        return $this->addReload($user, $trip);
+    }
+
     public function generateInvoice(User $user, Trip $trip): bool
     {
         if ($this->hasRole($user, ['admin'])) {

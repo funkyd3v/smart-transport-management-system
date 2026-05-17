@@ -6,6 +6,7 @@ namespace App\Modules\Admin\Repositories;
 
 use App\Models\User;
 use App\Modules\AuditLog\Models\AuditLog;
+use App\Modules\Cashbook\Enums\CashbookType;
 use App\Modules\Cashbook\Models\DailyCashbook;
 use App\Modules\Client\Models\Client;
 use App\Modules\Driver\Models\Driver;
@@ -147,19 +148,37 @@ final class AdminOperationsRepository implements AdminOperationsRepositoryInterf
     public function cashbookPaginated(int $perPage = 15): LengthAwarePaginator
     {
         return DailyCashbook::query()
-            ->select(['id', 'ulid', 'entry_date', 'recorded_by', 'total_income', 'total_expense', 'net_profit', 'closing_balance', 'is_finalized'])
+            ->selectRaw('id, ulid, entry_date, recorded_by,
+                CASE WHEN type = ? THEN amount ELSE 0 END as total_income,
+                CASE WHEN type = ? THEN amount ELSE 0 END as total_expense,
+                CASE WHEN type = ? THEN amount ELSE -amount END as net_profit,
+                balance as closing_balance,
+                CASE WHEN is_void = 0 THEN 1 ELSE 0 END as is_finalized', [
+                CashbookType::Credit->value,
+                CashbookType::Debit->value,
+                CashbookType::Credit->value,
+            ])
             ->with('recordedBy:id,name')
+            ->where('is_void', false)
             ->latest('entry_date')
             ->paginate($perPage);
     }
 
     public function cashbookStats(): array
     {
+        $monthly = DailyCashbook::query()
+            ->whereMonth('entry_date', now()->month)
+            ->whereYear('entry_date', now()->year)
+            ->where('is_void', false);
+
+        $income = (float) (clone $monthly)->where('type', CashbookType::Credit->value)->sum('amount');
+        $expense = (float) (clone $monthly)->where('type', CashbookType::Debit->value)->sum('amount');
+
         return [
-            'income_this_month' => (float) DailyCashbook::query()->whereMonth('entry_date', now()->month)->whereYear('entry_date', now()->year)->sum('total_income'),
-            'expense_this_month' => (float) DailyCashbook::query()->whereMonth('entry_date', now()->month)->whereYear('entry_date', now()->year)->sum('total_expense'),
-            'profit_this_month' => (float) DailyCashbook::query()->whereMonth('entry_date', now()->month)->whereYear('entry_date', now()->year)->sum('net_profit'),
-            'open_days' => DailyCashbook::query()->where('is_finalized', false)->count(),
+            'income_this_month' => $income,
+            'expense_this_month' => $expense,
+            'profit_this_month' => $income - $expense,
+            'open_days' => DailyCashbook::query()->where('is_void', false)->distinct('entry_date')->count('entry_date'),
         ];
     }
 

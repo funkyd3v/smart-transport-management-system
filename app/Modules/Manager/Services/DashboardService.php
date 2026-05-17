@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Manager\Services;
 
+use App\Modules\Cashbook\Enums\CashbookType;
+use App\Modules\Cashbook\Models\DailyCashbook;
 use App\Modules\Driver\Models\Driver;
 use App\Modules\Due\Models\DueRecord;
 use App\Modules\Payment\Models\Payment;
@@ -14,8 +16,8 @@ use App\Modules\Trip\Models\TripExpense;
 use App\Modules\Trip\Models\TripStatus;
 use App\Modules\Truck\Models\Truck;
 use App\Modules\Truck\Models\TruckStatus;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 final class DashboardService
 {
@@ -110,7 +112,7 @@ final class DashboardService
             ->get();
     }
 
-    public function getTopDueClients(int $limit = 5): Collection
+    public function getTopDueClients(int $limit = 5, ?int $managerId = null): Collection
     {
         return DueRecord::query()
             ->selectRaw('client_id, SUM(remaining_due) as due_amount, MAX(updated_at) as last_payment_date')
@@ -120,14 +122,31 @@ final class DashboardService
             ->orderByDesc('due_amount')
             ->limit($limit)
             ->get()
-            ->map(function (DueRecord $record): array {
+            ->map(function (DueRecord $record) use ($managerId): array {
                 $client = $record->client;
+
+                $collectTripUlid = null;
+                if ($managerId !== null) {
+                    $collectDue = DueRecord::query()
+                        ->where('client_id', $record->client_id)
+                        ->where('remaining_due', '>', 0)
+                        ->whereHas('trip', function ($query) use ($managerId): void {
+                            $query->where('created_by', $managerId);
+                        })
+                        ->with('trip:id,ulid')
+                        ->latest('updated_at')
+                        ->first();
+
+                    $collectTripUlid = $collectDue?->trip?->ulid;
+                }
 
                 return [
                     'client_id' => $record->client_id,
                     'name' => $client?->company_name ?? $client?->user?->name ?? ('Client #'.$record->client_id),
                     'due_amount' => (float) ($record->due_amount ?? 0),
                     'last_payment_date' => $record->last_payment_date,
+                    'can_collect' => $collectTripUlid !== null,
+                    'collect_trip_ulid' => $collectTripUlid,
                 ];
             });
     }
@@ -143,20 +162,22 @@ final class DashboardService
     {
         $endMonth = now()->copy()->startOfMonth();
         $startMonth = $endMonth->copy()->subMonths(max(0, $months - 1));
+        $paymentMonthKeyExpression = $this->monthKeyExpression('payment_date');
+        $expenseMonthKeyExpression = $this->monthKeyExpression('expense_date');
 
         $incomeByMonth = Payment::query()
-            ->selectRaw('YEAR(payment_date) as year, MONTH(payment_date) as month, SUM(amount) as total_amount')
+            ->selectRaw($paymentMonthKeyExpression.' as month_key, SUM(amount) as total_amount')
             ->whereBetween('payment_date', [$startMonth->toDateString(), $endMonth->copy()->endOfMonth()->toDateString()])
-            ->groupByRaw('YEAR(payment_date), MONTH(payment_date)')
+            ->groupByRaw($paymentMonthKeyExpression)
             ->get()
-            ->mapWithKeys(fn ($row): array => [sprintf('%04d-%02d', (int) $row->year, (int) $row->month) => (float) $row->total_amount]);
+            ->mapWithKeys(fn ($row): array => [(string) $row->month_key => (float) $row->total_amount]);
 
         $expenseByMonth = TripExpense::query()
-            ->selectRaw('YEAR(expense_date) as year, MONTH(expense_date) as month, SUM(amount) as total_amount')
+            ->selectRaw($expenseMonthKeyExpression.' as month_key, SUM(amount) as total_amount')
             ->whereBetween('expense_date', [$startMonth->toDateString(), $endMonth->copy()->endOfMonth()->toDateString()])
-            ->groupByRaw('YEAR(expense_date), MONTH(expense_date)')
+            ->groupByRaw($expenseMonthKeyExpression)
             ->get()
-            ->mapWithKeys(fn ($row): array => [sprintf('%04d-%02d', (int) $row->year, (int) $row->month) => (float) $row->total_amount]);
+            ->mapWithKeys(fn ($row): array => [(string) $row->month_key => (float) $row->total_amount]);
 
         $financials = [];
 
@@ -284,44 +305,18 @@ final class DashboardService
 
     public function getRecentCashbook(int $limit = 7): Collection
     {
-        $incomeEntries = Payment::query()
-            ->with(['client.user'])
-            ->latest('payment_date')
-            ->limit($limit * 2)
+        return DailyCashbook::query()
+            ->where('is_void', false)
+            ->latest('entry_date')
+            ->latest('created_at')
+            ->limit($limit)
             ->get()
-            ->map(function (Payment $payment): array {
-                $clientName = $payment->client?->company_name ?? $payment->client?->user?->name ?? 'Unknown Client';
-
-                return [
-                    'date' => $payment->payment_date,
-                    'description' => 'Payment received from '.$clientName,
-                    'type' => 'income',
-                    'amount' => (float) $payment->amount,
-                ];
-            });
-
-        $expenseEntries = TripExpense::query()
-            ->with('trip')
-            ->latest('expense_date')
-            ->limit($limit * 2)
-            ->get()
-            ->map(function (TripExpense $expense): array {
-                return [
-                    'date' => $expense->expense_date,
-                    'description' => $expense->description ?: 'Trip expense for '.($expense->trip?->trip_code ?? 'N/A'),
-                    'type' => 'expense',
-                    'amount' => (float) $expense->amount,
-                ];
-            });
-
-        return $incomeEntries
-            ->toBase()
-            ->merge($expenseEntries->toBase())
-            ->sortByDesc(function (array $entry): int {
-                return Carbon::parse((string) $entry['date'])->timestamp;
-            })
-            ->take($limit)
-            ->values();
+            ->map(fn (DailyCashbook $entry): array => [
+                'date' => $entry->entry_date,
+                'description' => $entry->description,
+                'type' => $entry->type === CashbookType::Credit ? 'income' : 'expense',
+                'amount' => (float) $entry->amount,
+            ]);
     }
 
     /**
@@ -366,5 +361,16 @@ final class DashboardService
         }
 
         return $ids;
+    }
+
+    private function monthKeyExpression(string $column): string
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return "strftime('%Y-%m', {$column})";
+        }
+
+        return "DATE_FORMAT({$column}, '%Y-%m')";
     }
 }

@@ -13,6 +13,14 @@ class StoreCashbookRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'type' => ['required', 'in:credit,debit'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'description' => ['required', 'string', 'max:255'],
+            'entry_date' => ['required', 'date'],
+            'note' => ['nullable', 'string'],
+            'reference_id' => ['nullable', 'string', 'max:26'],
+            'reference_type' => ['nullable', 'string', 'max:50'],
+        ];
     }
 }

@@ -51,15 +51,8 @@ class ProfileController extends Controller
         $user = $request->user();
         $user->forceFill([
             'name' => $request->validated()['name'],
+            'phone' => $request->validated()['phone'] ?? $user->phone,
         ])->save();
-
-        $phone = $request->validated()['phone'] ?? null;
-
-        if ($phone !== null) {
-            Driver::query()
-                ->where('user_id', $user->id)
-                ->update(['mobile_number' => $phone]);
-        }
 
         return redirect()->route('driver.profile')->with('success', 'Profile updated successfully.');
     }
