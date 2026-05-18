@@ -8,6 +8,8 @@ services:
     volumes:
       - ./:/var/www/html
       - composer-cache:/tmp/composer-cache
+      - ./docker/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini:ro
+      - ./docker/php/conf.d/php.ini:/usr/local/etc/php/conf.d/php.ini:ro
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -28,10 +30,7 @@ services:
       REVERB_PORT: "8080"
       REVERB_SCHEME: http
       COMPOSER_CACHE_DIR: /tmp/composer-cache
-    command: >
-      sh -lc "composer install --no-interaction --prefer-dist &&
-      php artisan optimize:clear &&
-      php-fpm"
+    command: php-fpm
     depends_on:
       mysql:
         condition: service_healthy
@@ -63,7 +62,6 @@ services:
       MYSQL_USER: tms
       MYSQL_PASSWORD: tms
       MYSQL_ROOT_PASSWORD: root
-    command: --default-authentication-plugin=mysql_native_password
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -94,6 +92,8 @@ services:
     volumes:
       - ./:/var/www/html
       - composer-cache:/tmp/composer-cache
+      - ./docker/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini:ro
+      - ./docker/php/conf.d/php.ini:/usr/local/etc/php/conf.d/php.ini:ro
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -131,6 +131,8 @@ services:
     volumes:
       - ./:/var/www/html
       - composer-cache:/tmp/composer-cache
+      - ./docker/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini:ro
+      - ./docker/php/conf.d/php.ini:/usr/local/etc/php/conf.d/php.ini:ro
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
