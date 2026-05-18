@@ -125,13 +125,21 @@ docker-compose exec app php artisan key:generate
 
 ## Default Credentials
 
-After running `php artisan migrate --seed`, log in at **http://localhost:8000/login** with:
+After running `php artisan migrate --seed`, log in at **http://localhost:8000/login** with any of the seeded accounts:
 
 | Role | Email | Password |
 |---|---|---|
 | Admin | `admin@demo.com` | `admin@26` |
+| Manager | `manager@demo.com` | `manager@26` |
+| Driver | `driver@demo.com` | `driver@26` |
 
-> These credentials are seeded by `AdminSeeder`. You can override them before seeding by setting `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` in your `.env` file.
+> You can override any of these before seeding by setting the corresponding environment variables in `.env`:
+>
+> | Variable | Default |
+> |---|---|
+> | `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` | `admin@demo.com` / `admin@26` / `System Admin` |
+> | `MANAGER_EMAIL` / `MANAGER_PASSWORD` / `MANAGER_NAME` | `manager@demo.com` / `manager@26` / `Manager` |
+> | `DRIVER_EMAIL` / `DRIVER_PASSWORD` / `DRIVER_NAME` | `driver@demo.com` / `driver@26` / `Driver` |
 
 ---
 
