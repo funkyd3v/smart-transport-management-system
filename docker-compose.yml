@@ -168,7 +168,7 @@ services:
       - "5173:5173"
     volumes:
       - ./:/var/www/html
-    command: sh -lc "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    command: sh -lc "npm install && npm run dev"
     depends_on:
       - web
     networks:
