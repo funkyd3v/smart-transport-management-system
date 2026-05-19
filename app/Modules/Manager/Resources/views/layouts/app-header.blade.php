@@ -96,7 +96,7 @@
             </div>
 
             <!-- User Dropdown -->
-            <x-header.user-dropdown />
+            @include('manager::components.header.user-dropdown')
         </div>
     </div>
 </header>

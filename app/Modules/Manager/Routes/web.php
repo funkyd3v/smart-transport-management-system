@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Manager\Http\Controllers\Client\ClientController;
 use App\Modules\Manager\Http\Controllers\DashboardController;
 use App\Modules\Manager\Http\Controllers\Driver\DriverController;
+use App\Modules\Manager\Http\Controllers\ProfileController;
 use App\Modules\Manager\Http\Controllers\Trip\TripController;
 use App\Modules\Manager\Http\Controllers\Trip\TripExpenseApprovalController;
 use App\Modules\Manager\Http\Controllers\Trip\TripExpenseController;
@@ -18,6 +19,8 @@ Route::middleware(['web', 'auth', 'verified', 'role:manager'])
     ->as('manager.')
     ->group(function (): void {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
         Route::middleware(['throttle:60,1'])->group(function (): void {
             Route::resource('clients', ClientController::class);
