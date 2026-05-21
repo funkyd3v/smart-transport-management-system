@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace App\Modules\Admin\Providers;
 
+use App\Models\User;
+use App\Modules\Admin\Models\CompanySetting;
+use App\Modules\Admin\Models\LoginHistory;
+use App\Modules\Admin\Models\NotificationPreference;
 use App\Modules\Admin\Repositories\AdminDashboardRepository;
 use App\Modules\Admin\Repositories\AdminDashboardRepositoryInterface;
 use App\Modules\Admin\Repositories\AdminOperationsRepository;
 use App\Modules\Admin\Repositories\AdminOperationsRepositoryInterface;
+use App\Modules\Admin\Repositories\ProfileRepository;
+use App\Modules\Admin\Repositories\ProfileRepositoryInterface;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,6 +24,7 @@ class AdminServiceProvider extends ServiceProvider
     {
         $this->app->bind(AdminDashboardRepositoryInterface::class, AdminDashboardRepository::class);
         $this->app->bind(AdminOperationsRepositoryInterface::class, AdminOperationsRepository::class);
+        $this->app->bind(ProfileRepositoryInterface::class, ProfileRepository::class);
     }
 
     public function boot(): void
@@ -25,5 +33,12 @@ class AdminServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../Routes/api.php');
         $this->loadViewsFrom(__DIR__.'/../Resources/views', 'admin');
         Blade::anonymousComponentPath(__DIR__.'/../Resources/views/components');
+
+        Relation::enforceMorphMap([
+            User::class => User::class,
+            'company_setting' => CompanySetting::class,
+            'notification_preference' => NotificationPreference::class,
+            'login_history' => LoginHistory::class,
+        ]);
     }
 }

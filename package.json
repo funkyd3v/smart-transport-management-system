@@ -20,5 +20,9 @@
         "pusher-js": "^8.5.0",
         "tailwindcss": "^4.1.7",
         "vite": "^7.0.7"
+    },
+    "dependencies": {
+        "@tabler/icons-webfont": "^3.44.0",
+        "toastify-js": "^1.12.0"
     }
 }

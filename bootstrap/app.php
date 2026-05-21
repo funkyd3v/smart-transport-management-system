@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\RoleMiddleware;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
@@ -19,6 +22,21 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+
+        RedirectIfAuthenticated::redirectUsing(function (Request $request): string {
+            $user = Auth::user();
+            if ($user === null) {
+                return route('home');
+            }
+
+            return match ((string) $user->role) {
+                'admin' => route('admin.dashboard'),
+                'manager' => route('manager.dashboard'),
+                'driver' => route('driver.dashboard'),
+                'client' => route('client.dashboard'),
+                default => route('home'),
+            };
+        });
 
         $middleware->alias([
             'role' => RoleMiddleware::class,

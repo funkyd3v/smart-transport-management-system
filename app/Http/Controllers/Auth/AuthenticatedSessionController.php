@@ -7,13 +7,17 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Modules\Auth\Services\AuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(private readonly AuthService $authService) {}
+
     /**
      * Display the login view.
      */
@@ -27,7 +31,13 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        try {
+            $request->authenticate();
+        } catch (ValidationException $exception) {
+            $this->authService->recordFailedLoginAttempt($request);
+
+            throw $exception;
+        }
 
         /** @var User $user */
         $user = Auth::user();
@@ -40,9 +50,7 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        $user->forceFill([
-            'last_login_at' => now(),
-        ])->save();
+        $this->authService->recordSuccessfulLogin($user, $request);
 
         $request->session()->regenerate();
 
@@ -65,10 +73,11 @@ class AuthenticatedSessionController extends Controller
 
     protected function redirectTo(User $user): string
     {
-        return match ($user->role) {
+        return match ((string) $user->role) {
             'admin' => route('admin.dashboard'),
             'manager' => route('manager.dashboard'),
             'driver' => route('driver.dashboard'),
+            'client' => route('client.dashboard'),
             default => route('home'),
         };
     }

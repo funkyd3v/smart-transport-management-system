@@ -6,6 +6,7 @@
  'placeholder' => 'Select date',
  'name' => null,
  'dateFormat' => 'Y-m-d',
+ 'maxDate' => null,
 ])
 
 <div x-data="{
@@ -18,6 +19,7 @@
  monthSelectorType: 'static',
  dateFormat: '{{ $dateFormat }}',
  defaultDate: {{ $defaultDate ? (is_array($defaultDate) ? json_encode($defaultDate) : "'" . $defaultDate . "'") : 'null' }},
+ maxDate: {{ $maxDate ? (is_array($maxDate) ? json_encode($maxDate) : "'" . $maxDate . "'") : 'null' }},
  onChange: (selectedDates, dateStr, instance) => {
  this.$dispatch('date-change', {
  selectedDates,

@@ -32,6 +32,7 @@ class VerifyEmailController extends Controller
             'admin' => route('admin.dashboard', absolute: false),
             'manager' => route('manager.dashboard', absolute: false),
             'driver' => route('driver.dashboard', absolute: false),
+            'client' => route('client.dashboard', absolute: false),
             default => route('home', absolute: false),
         };
     }

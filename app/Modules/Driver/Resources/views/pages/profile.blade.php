@@ -102,6 +102,9 @@
                         <div>
                             <label for="password" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">New Password <span class="text-red-500">*</span></label>
                             <input id="password" name="password" type="password" autocomplete="new-password" required class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm dark:border-gray-700" />
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+                                Must be at least 8 characters and include uppercase and lowercase letters, a number, and a symbol.
+                            </p>
                         </div>
 
                         <div>

@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap') layer(base);
 @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism.min.css');
+@import '@tabler/icons-webfont/dist/tabler-icons.min.css';
 @import 'tailwindcss';
 
 @layer utilities {

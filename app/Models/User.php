@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Modules\Admin\Models\CompanySetting;
+use App\Modules\Admin\Models\LoginHistory;
+use App\Modules\Admin\Models\NotificationPreference;
 use App\Modules\Shared\Traits\HasUlid;
-use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
@@ -19,7 +24,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasUlid, InteractsWithMedia, Notifiable;
 
     /**
@@ -31,10 +35,17 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'ulid',
         'name',
         'email',
+        'phone',
+        'nid',
+        'date_of_birth',
+        'gender',
+        'address',
+        'avatar',
         'password',
         'role',
         'is_active',
         'last_login_at',
+        'last_login_ip',
     ];
 
     /**
@@ -58,8 +69,24 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
+            'date_of_birth' => 'date',
             'password' => 'hashed',
         ];
+    }
+
+    public function companySetting(): HasOne
+    {
+        return $this->hasOne(CompanySetting::class);
+    }
+
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
+    public function loginHistories(): HasMany
+    {
+        return $this->hasMany(LoginHistory::class);
     }
 
     protected function password(): Attribute
@@ -73,6 +100,17 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function getAuthPasswordName(): string
     {
         return 'password_hash';
+    }
+
+    /**
+     * @param  string|list<string>  $roles
+     */
+    public function hasRole(string|array $roles): bool
+    {
+        $allowedRoles = is_array($roles) ? $roles : [$roles];
+        $roleName = is_object($this->role) ? (string) ($this->role->name ?? '') : (string) $this->role;
+
+        return in_array($roleName, $allowedRoles, true);
     }
 
     public function registerMediaCollections(): void
@@ -101,16 +139,41 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
     public function getAvatarUrlAttribute(): string
     {
+        if (filled($this->avatar)) {
+            return Storage::url((string) $this->avatar);
+        }
+
         $avatarMedia = $this->getFirstMedia('avatar');
 
-        if ($avatarMedia === null) {
-            return asset('images/user/owner.png');
+        if ($avatarMedia !== null) {
+            if ($avatarMedia->hasGeneratedConversion('thumb')) {
+                return $avatarMedia->getUrl('thumb');
+            }
+
+            return $avatarMedia->getUrl();
         }
 
-        if ($avatarMedia->hasGeneratedConversion('thumb')) {
-            return $avatarMedia->getUrl('thumb');
+        return sprintf(
+            'https://ui-avatars.com/api/?name=%s&background=0D6EFD&color=fff&size=160',
+            urlencode((string) $this->name)
+        );
+    }
+
+    public function getFormattedLastLoginAttribute(): ?string
+    {
+        if ($this->last_login_at === null) {
+            return null;
         }
 
-        return $avatarMedia->getUrl();
+        $lastLogin = $this->last_login_at;
+        if ($lastLogin->isToday()) {
+            return 'Today at '.$lastLogin->format('H:i');
+        }
+
+        if ($lastLogin->isYesterday()) {
+            return 'Yesterday at '.$lastLogin->format('H:i');
+        }
+
+        return $lastLogin->format('d M Y \a\t H:i');
     }
 }

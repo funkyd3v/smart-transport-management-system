@@ -7,6 +7,7 @@ use App\Modules\Admin\Http\Controllers\ClientController;
 use App\Modules\Admin\Http\Controllers\DashboardController;
 use App\Modules\Admin\Http\Controllers\DriverController;
 use App\Modules\Admin\Http\Controllers\FinanceController;
+use App\Modules\Admin\Http\Controllers\ProfileController;
 use App\Modules\Admin\Http\Controllers\ReportController;
 use App\Modules\Admin\Http\Controllers\SettingsController;
 use App\Modules\Admin\Http\Controllers\SpareController;
@@ -49,6 +50,22 @@ Route::middleware(['web', 'auth', 'verified', 'role:admin', 'throttle:60,1'])
 
         Route::resource('spare', SpareController::class);
         Route::resource('spare/sales', SpareSaleController::class)->names('spare.sales');
+
+        Route::prefix('profile')->name('profile.')->group(function (): void {
+            Route::get('/', [ProfileController::class, 'index'])->name('index');
+            Route::put('/personal', [ProfileController::class, 'updatePersonal'])->name('personal.update');
+            Route::put('/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('password.update');
+            Route::post('/avatar', [ProfileController::class, 'updateAvatar'])->name('avatar.update');
+            Route::put('/company', [ProfileController::class, 'updateCompany'])->name('company.update');
+            Route::post('/company/logo', [ProfileController::class, 'updateCompanyLogo'])->name('company.logo');
+            Route::post('/company/signature', [ProfileController::class, 'updateCompanySignature'])->name('company.signature');
+            Route::patch('/notifications', [ProfileController::class, 'updateNotification'])->name('notifications.update');
+            Route::get('/stats', [ProfileController::class, 'stats'])->name('stats');
+            Route::get('/sessions', [ProfileController::class, 'sessions'])->name('sessions');
+            Route::delete('/sessions', [ProfileController::class, 'destroySessions'])->name('sessions.destroy');
+            Route::get('/activity', [ProfileController::class, 'activityLog'])->name('activity');
+            Route::get('/activity/export', [ProfileController::class, 'exportActivity'])->name('activity.export');
+        });
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::post('/reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
