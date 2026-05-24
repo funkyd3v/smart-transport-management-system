@@ -69,7 +69,7 @@ class AdminMenuProvider implements MenuProviderInterface
                         'subItems' => [
                             [
                                 'name' => 'Inventory',
-                                'path' => $this->safeRoute('admin.spare.index'),
+                                'path' => $this->safeRoute('admin.spare.inventory.index'),
                             ],
                             [
                                 'name' => 'Sales',

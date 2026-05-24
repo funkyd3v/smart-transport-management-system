@@ -8,6 +8,8 @@
 
  <title>{{ $title ?? 'Dashboard' }} | TailAdmin - Laravel Tailwind CSS Admin Dashboard Template</title>
 
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+
  <!-- Scripts -->
  @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -87,8 +89,10 @@
 
  </div>
 
-</body>
-
 @stack('scripts')
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+</body>
 
 </html>

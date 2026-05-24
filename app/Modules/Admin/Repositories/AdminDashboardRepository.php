@@ -83,7 +83,7 @@ final class AdminDashboardRepository implements AdminDashboardRepositoryInterfac
 
     public function sparePartsValue(): float
     {
-        return (float) SparePart::query()->selectRaw('SUM(quantity_in_stock * purchase_price) as total')->value('total');
+        return (float) (SparePart::query()->selectRaw('SUM(quantity * purchase_price) as total')->value('total') ?? 0);
     }
 
     public function revenueExpenseByMonth(int $months = 6): array

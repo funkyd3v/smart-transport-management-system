@@ -590,7 +590,7 @@
 			const tbody = document.getElementById('activity-table-body');
 			tbody.innerHTML = '';
 			for (let i = 0; i < 5; i++) {
-				tbody.insertAdjacentHTML('beforeend', '<tr><td colspan="6" class="px-3 py-3"><div class="h-5 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div></td></tr>');
+				tbody.insertAdjacentHTML('beforeend', '<tr><td colspan="5" class="px-3 py-3"><div class="h-5 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div></td></tr>');
 			}
 		}
 
@@ -599,13 +599,11 @@
 			tbody.innerHTML = '';
 
 			if (!rows.length) {
-				tbody.innerHTML = '<tr><td colspan="6" class="px-3 py-4 text-center text-gray-500">No activity found for selected filters.</td></tr>';
+				tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">No activity found for selected filters.</td></tr>';
 			}
 
 			rows.forEach((row) => {
 				const status = (row.action || '').includes('failed') ? 'Failed' : 'Success';
-				const oldValues = JSON.stringify(row.old_values || {}, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-				const newValues = JSON.stringify(row.new_values || {}, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 				tbody.insertAdjacentHTML('beforeend', `
 					<tr class="border-b border-gray-100 dark:border-gray-700/60">
@@ -614,7 +612,6 @@
 						<td class="px-3 py-2 text-gray-700 dark:text-gray-300">${row.table_name || '-'}</td>
 						<td class="px-3 py-2 text-gray-700 dark:text-gray-300">${row.ip_address || '-'}</td>
 						<td class="px-3 py-2"><span class="inline-flex rounded-full px-2 py-1 text-xs font-medium ${status === 'Success' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${status}</span></td>
-						<td class="px-3 py-2"><button class="text-sm font-medium text-brand-600" onclick="showActivityDetails('${encodeURIComponent(oldValues)}','${encodeURIComponent(newValues)}')">Details</button></td>
 					</tr>
 				`);
 			});
@@ -625,15 +622,6 @@
 			for (let i = 1; i <= (meta.last_page || 1); i++) {
 				pag.insertAdjacentHTML('beforeend', `<button class="rounded border px-3 py-1 text-sm ${i === meta.current_page ? 'bg-brand-500 text-white border-brand-500' : 'border-gray-300 text-gray-700'}" onclick="loadActivityLog(${i})">${i}</button>`);
 			}
-		}
-
-		function showActivityDetails(oldValues, newValues) {
-			Swal.fire({
-				title: 'Activity Details',
-				width: '900px',
-				html: `<div class="grid grid-cols-1 gap-3 text-left md:grid-cols-2"><div><p class="mb-1 text-xs uppercase text-gray-500">Old Values</p><pre class="max-h-80 overflow-auto rounded bg-gray-100 p-3 text-xs">${decodeURIComponent(oldValues)}</pre></div><div><p class="mb-1 text-xs uppercase text-gray-500">New Values</p><pre class="max-h-80 overflow-auto rounded bg-gray-100 p-3 text-xs">${decodeURIComponent(newValues)}</pre></div></div>`,
-				confirmButtonText: 'Close',
-			});
 		}
 
 		function loadActivityLog(page = 1) {
@@ -659,6 +647,48 @@
 			const to = document.getElementById('activity-to').value;
 			const type = document.getElementById('activity-type').value;
 			window.location.href = `{{ route('admin.profile.activity.export') }}?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&type=${encodeURIComponent(type)}`;
+		}
+
+		function initActivityDateRangeConstraint(retryCount = 0) {
+			const fromInput = document.getElementById('activity-from');
+			const toInput = document.getElementById('activity-to');
+
+			if (!fromInput || !toInput) {
+				return;
+			}
+
+			const syncToMinDate = () => {
+				const fromDate = fromInput.value || null;
+				const toPicker = toInput._flatpickr || null;
+
+				if (toPicker) {
+					toPicker.set('minDate', fromDate);
+				}
+
+				if (fromDate && toInput.value && toInput.value < fromDate) {
+					if (toPicker) {
+						toPicker.clear();
+					} else {
+						toInput.value = '';
+					}
+
+					Toastify({ text: 'To date must be on or after From date', style: { background: '#EF4444' } }).showToast();
+				}
+			};
+
+			if (!fromInput.dataset.rangeConstraintBound) {
+				fromInput.addEventListener('change', syncToMinDate);
+				fromInput.addEventListener('input', syncToMinDate);
+				toInput.addEventListener('change', syncToMinDate);
+				toInput.addEventListener('input', syncToMinDate);
+				fromInput.dataset.rangeConstraintBound = '1';
+			}
+
+			syncToMinDate();
+
+			if ((!fromInput._flatpickr || !toInput._flatpickr) && retryCount < 10) {
+				setTimeout(() => initActivityDateRangeConstraint(retryCount + 1), 100);
+			}
 		}
 
 		function loadProfileStats() {
@@ -768,6 +798,7 @@
 
 		document.addEventListener('DOMContentLoaded', function() {
 			loadProfileStats();
+			initActivityDateRangeConstraint();
 
 			setupPreview('logo-input', 'logo-preview', 'save-logo-btn', ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'], 1024 * 1024);
 			setupPreview('signature-input', 'signature-preview', 'save-signature-btn', ['image/jpeg', 'image/png'], 1024 * 1024);

@@ -185,8 +185,8 @@ final class AdminOperationsRepository implements AdminOperationsRepositoryInterf
     public function sparePartsPaginated(int $perPage = 15): LengthAwarePaginator
     {
         return SparePart::query()
-            ->select(['id', 'ulid', 'category_id', 'part_name', 'condition', 'sourced_from_truck_id', 'quantity_in_stock', 'purchase_price'])
-            ->with(['category:id,name', 'sourcedFromTruck:id,truck_number'])
+            ->select(['id', 'ulid', 'category_id', 'name', 'condition', 'source_truck_id', 'quantity', 'purchase_price'])
+            ->with(['category:id,name', 'sourceTruck:id,truck_number'])
             ->latest('id')
             ->paginate($perPage);
     }
@@ -195,18 +195,18 @@ final class AdminOperationsRepository implements AdminOperationsRepositoryInterf
     {
         return [
             'total_parts' => SparePart::query()->count(),
-            'low_stock' => SparePart::query()->where('quantity_in_stock', '<=', 5)->count(),
-            'inventory_value' => (float) SparePart::query()->selectRaw('SUM(quantity_in_stock * purchase_price) as total')->value('total'),
-            'sold_items' => (int) SpareSale::query()->sum('quantity_sold'),
+            'low_stock' => SparePart::query()->where('quantity', '<=', SparePart::LOW_STOCK_THRESHOLD)->count(),
+            'inventory_value' => (float) (SparePart::query()->selectRaw('SUM(quantity * purchase_price) as total')->value('total') ?? 0),
+            'sold_items' => (int) (SpareSale::query()->sum('quantity') ?? 0),
         ];
     }
 
     public function spareSalesPaginated(int $perPage = 15): LengthAwarePaginator
     {
         return SpareSale::query()
-            ->select(['id', 'ulid', 'spare_part_id', 'sale_type_id', 'sold_by', 'buyer_name', 'quantity_sold', 'sale_price', 'profit', 'sale_date'])
-            ->with(['sparePart:id,part_name', 'saleType:id,name', 'soldBy:id,name'])
-            ->latest('sale_date')
+            ->select(['id', 'ulid', 'spare_part_id', 'sale_type_id', 'created_by', 'buyer_name', 'quantity', 'sale_price', 'profit', 'sold_at'])
+            ->with(['sparePart:id,name', 'saleType:id,name', 'creator:id,name'])
+            ->latest('sold_at')
             ->paginate($perPage);
     }
 
@@ -216,7 +216,7 @@ final class AdminOperationsRepository implements AdminOperationsRepositoryInterf
             'revenue' => (float) SpareSale::query()->sum('sale_price'),
             'profit' => (float) SpareSale::query()->sum('profit'),
             'transactions' => SpareSale::query()->count(),
-            'today_sales' => SpareSale::query()->whereDate('sale_date', now()->toDateString())->count(),
+            'today_sales' => SpareSale::query()->whereDate('sold_at', now()->toDateString())->count(),
         ];
     }
 
@@ -231,10 +231,52 @@ final class AdminOperationsRepository implements AdminOperationsRepositoryInterf
 
     public function reportStats(): array
     {
+        $today = now()->toDateString();
+        $month = now()->month;
+        $year = now()->year;
+
+        $tripIncomeTotal = (float) Payment::query()->sum('amount');
+        $spareSalesRevenueTotal = (float) SpareSale::query()->sum('sale_price');
+        $tripExpensesTotal = (float) TripExpense::query()->sum('amount');
+        $spareProfitTotal = (float) SpareSale::query()->sum('profit');
+
+        $tripIncomeToday = (float) Payment::query()->whereDate('payment_date', $today)->sum('amount');
+        $spareRevenueToday = (float) SpareSale::query()->whereDate('sold_at', $today)->sum('sale_price');
+        $tripExpensesToday = (float) TripExpense::query()->whereDate('expense_date', $today)->sum('amount');
+        $tripProfitToday = $tripIncomeToday - $tripExpensesToday;
+        $spareProfitToday = (float) SpareSale::query()->whereDate('sold_at', $today)->sum('profit');
+
+        $tripIncomeMonthly = (float) Payment::query()->whereYear('payment_date', $year)->whereMonth('payment_date', $month)->sum('amount');
+        $spareRevenueMonthly = (float) SpareSale::query()->whereYear('sold_at', $year)->whereMonth('sold_at', $month)->sum('sale_price');
+        $tripExpensesMonthly = (float) TripExpense::query()->whereYear('expense_date', $year)->whereMonth('expense_date', $month)->sum('amount');
+        $tripProfitMonthly = $tripIncomeMonthly - $tripExpensesMonthly;
+        $spareProfitMonthly = (float) SpareSale::query()->whereYear('sold_at', $year)->whereMonth('sold_at', $month)->sum('profit');
+
         return [
             'trips' => Trip::query()->count(),
-            'payments' => (float) Payment::query()->sum('amount'),
-            'expenses' => (float) TripExpense::query()->sum('amount'),
+            'payments' => $tripIncomeTotal,
+            'spare_sales_revenue' => $spareSalesRevenueTotal,
+            'total_income' => $tripIncomeTotal + $spareSalesRevenueTotal,
+            'expenses' => $tripExpensesTotal,
+            'spare_related_expenses' => 0.0,
+            'spare_profit' => $spareProfitTotal,
+            'total_profit' => ($tripIncomeTotal - $tripExpensesTotal) + $spareProfitTotal,
+            'daily_trip_income' => $tripIncomeToday,
+            'daily_spare_sales_revenue' => $spareRevenueToday,
+            'daily_total_income' => $tripIncomeToday + $spareRevenueToday,
+            'daily_trip_expenses' => $tripExpensesToday,
+            'daily_spare_related_expenses' => 0.0,
+            'daily_trip_profit' => $tripProfitToday,
+            'daily_spare_profit' => $spareProfitToday,
+            'daily_total_profit' => $tripProfitToday + $spareProfitToday,
+            'monthly_trip_income' => $tripIncomeMonthly,
+            'monthly_spare_sales_revenue' => $spareRevenueMonthly,
+            'monthly_total_income' => $tripIncomeMonthly + $spareRevenueMonthly,
+            'monthly_trip_expenses' => $tripExpensesMonthly,
+            'monthly_spare_related_expenses' => 0.0,
+            'monthly_trip_profit' => $tripProfitMonthly,
+            'monthly_spare_profit' => $spareProfitMonthly,
+            'monthly_total_profit' => $tripProfitMonthly + $spareProfitMonthly,
             'dues' => (float) DueRecord::query()->sum('remaining_due'),
         ];
     }

@@ -10,8 +10,6 @@ use App\Modules\Admin\Http\Controllers\FinanceController;
 use App\Modules\Admin\Http\Controllers\ProfileController;
 use App\Modules\Admin\Http\Controllers\ReportController;
 use App\Modules\Admin\Http\Controllers\SettingsController;
-use App\Modules\Admin\Http\Controllers\SpareController;
-use App\Modules\Admin\Http\Controllers\SpareSaleController;
 use App\Modules\Admin\Http\Controllers\TripController;
 use App\Modules\Admin\Http\Controllers\TruckController;
 use App\Modules\Admin\Http\Controllers\UserController;
@@ -47,9 +45,6 @@ Route::middleware(['web', 'auth', 'verified', 'role:admin', 'throttle:60,1'])
 
         Route::resource('clients', ClientController::class);
         Route::get('clients/{client}/due-pdf', [ClientController::class, 'duePdf'])->name('clients.duePdf');
-
-        Route::resource('spare', SpareController::class);
-        Route::resource('spare/sales', SpareSaleController::class)->names('spare.sales');
 
         Route::prefix('profile')->name('profile.')->group(function (): void {
             Route::get('/', [ProfileController::class, 'index'])->name('index');

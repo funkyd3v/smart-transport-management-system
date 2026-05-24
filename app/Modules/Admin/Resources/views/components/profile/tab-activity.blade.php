@@ -37,7 +37,6 @@
                         <th class="px-3 py-2">Description</th>
                         <th class="px-3 py-2">IP</th>
                         <th class="px-3 py-2">Status</th>
-                        <th class="px-3 py-2">Details</th>
                     </tr>
                 </thead>
                 <tbody id="activity-table-body"></tbody>

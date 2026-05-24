@@ -283,7 +283,7 @@ final class DashboardService
         $lowStockThreshold = 10;
 
         return SpareCategory::query()
-            ->withSum('spareParts as stock_count', 'quantity_in_stock')
+            ->withSum('spareParts as stock_count', 'quantity')
             ->orderBy('name')
             ->get()
             ->map(function (SpareCategory $category) use ($lowStockThreshold): array {
@@ -300,7 +300,7 @@ final class DashboardService
 
     public function getTotalSpareParts(): int
     {
-        return (int) SparePart::query()->sum('quantity_in_stock');
+        return (int) SparePart::query()->sum('quantity');
     }
 
     public function getRecentCashbook(int $limit = 7): Collection

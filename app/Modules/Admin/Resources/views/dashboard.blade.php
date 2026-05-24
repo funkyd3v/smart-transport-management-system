@@ -217,7 +217,7 @@
  <a href="{{ route('admin.trucks.create') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-800 transition hover:bg-sky-50 hover:text-sky-700">Add Truck</a>
  <a href="{{ route('admin.clients.create') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-800 transition hover:bg-sky-50 hover:text-sky-700">Add Client</a>
  <a href="{{ route('admin.reports.index') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-800 transition hover:bg-sky-50 hover:text-sky-700">Reports</a>
- <a href="{{ route('admin.spare.create') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-800 transition hover:bg-sky-50 hover:text-sky-700">Add Spare</a>
+ <a href="{{ route('admin.spare.inventory.create') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-800 transition hover:bg-sky-50 hover:text-sky-700">Add Spare</a>
  </div>
  </div>
 

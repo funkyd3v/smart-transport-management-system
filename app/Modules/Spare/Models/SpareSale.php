@@ -2,38 +2,38 @@
 
 namespace App\Modules\Spare\Models;
 
-use App\Modules\Auth\Models\User;
+use App\Models\User;
 use App\Modules\Shared\Traits\HasUlid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SpareSale extends Model
 {
-    use HasUlid;
+    use HasUlid, SoftDeletes;
 
     protected $fillable = [
         'ulid',
-        'spare_part_id',
         'sale_type_id',
-        'sold_by',
+        'spare_part_id',
         'buyer_name',
-        'buyer_contact',
-        'quantity_sold',
-        'purchase_price_snapshot',
+        'quantity',
         'sale_price',
+        'purchase_price_snapshot',
         'profit',
-        'sale_date',
         'note',
+        'sold_at',
+        'created_by',
     ];
 
     protected function casts(): array
     {
         return [
-            'quantity_sold' => 'integer',
-            'purchase_price_snapshot' => 'decimal:2',
+            'quantity' => 'integer',
             'sale_price' => 'decimal:2',
+            'purchase_price_snapshot' => 'decimal:2',
             'profit' => 'decimal:2',
-            'sale_date' => 'date',
+            'sold_at' => 'date',
         ];
     }
 
@@ -47,8 +47,8 @@ class SpareSale extends Model
         return $this->belongsTo(SpareSaleType::class, 'sale_type_id');
     }
 
-    public function soldBy(): BelongsTo
+    public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sold_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

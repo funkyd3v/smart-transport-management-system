@@ -107,8 +107,17 @@ class ReferenceDataSeeder extends Seeder
 
     private function seedSpareSaleTypes(): void
     {
-        foreach (['Retail', 'Wholesale', 'Internal'] as $name) {
-            SpareSaleType::query()->firstOrCreate(['name' => $name]);
+        $definitions = [
+            'spare_part' => 'Physical spare part sale from inventory stock.',
+            'security_solution' => 'Security product or solution sale.',
+            'monthly_maintenance' => 'Recurring monthly maintenance contract sale.',
+        ];
+
+        foreach ($definitions as $name => $description) {
+            SpareSaleType::query()->updateOrCreate(
+                ['name' => $name],
+                ['description' => $description],
+            );
         }
     }
 }
