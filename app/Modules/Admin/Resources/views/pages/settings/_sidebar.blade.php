@@ -23,6 +23,10 @@
     @push('scripts')
         <script>
             (function() {
+                if (window.AdminSettingsAjax) {
+                    return;
+                }
+
                 function isSettingsLink(link) {
                     if (!link) {
                         return false;
@@ -49,6 +53,21 @@
                         replacement.text = script.text;
                         script.replaceWith(replacement);
                     });
+                }
+
+                function showToast(text, isError = false) {
+                    if (typeof window.Toastify !== 'function') {
+                        return;
+                    }
+
+                    Toastify({
+                        text,
+                        duration: 3000,
+                        gravity: 'top',
+                        position: 'right',
+                        stopOnFocus: true,
+                        style: { background: isError ? '#ef4444' : '#22c55e' },
+                    }).showToast();
                 }
 
                 function renderSettingsSkeleton(region) {
@@ -124,6 +143,69 @@
                     }
                 }
 
+                async function submitSettingsForm(form) {
+                    const currentRegion = document.getElementById('settings-page-region');
+
+                    if (!currentRegion) {
+                        form.submit();
+                        return;
+                    }
+
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    const buttonLabel = submitButton ? submitButton.querySelector('span') : null;
+                    const buttonText = buttonLabel ? buttonLabel.textContent : null;
+
+                    try {
+                        if (submitButton) {
+                            submitButton.disabled = true;
+                        }
+
+                        if (buttonLabel) {
+                            buttonLabel.textContent = 'Saving...';
+                        }
+
+                        const response = await fetch(form.action, {
+                            method: form.method || 'POST',
+                            body: new FormData(form),
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                Accept: 'text/html',
+                            },
+                        });
+
+                        const html = await response.text();
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const incomingRegion = doc.getElementById('settings-page-region');
+
+                        if (!incomingRegion) {
+                            throw new Error('Settings content not found.');
+                        }
+
+                        currentRegion.replaceWith(incomingRegion);
+                        executeScripts(incomingRegion);
+
+                        const firstError = incomingRegion.querySelector('.text-red-600');
+
+                        if (firstError) {
+                            showToast(firstError.textContent.trim(), true);
+                            return;
+                        }
+
+                        showToast('Settings updated successfully.');
+                    } catch (error) {
+                        console.error(error);
+                        showToast('Unable to save settings. Please try again.', true);
+                    } finally {
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                        }
+
+                        if (buttonLabel && buttonText !== null) {
+                            buttonLabel.textContent = buttonText;
+                        }
+                    }
+                }
+
                 document.addEventListener('click', function(event) {
                     const link = event.target.closest('.js-settings-nav');
 
@@ -135,6 +217,17 @@
                     loadSettingsRegion(link.href);
                 });
 
+                document.addEventListener('submit', function(event) {
+                    const form = event.target.closest('[data-settings-ajax-form]');
+
+                    if (!form) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    submitSettingsForm(form);
+                });
+
                 window.addEventListener('popstate', function() {
                     if (!window.location.pathname.startsWith('/admin/settings/')) {
                         return;
@@ -142,6 +235,12 @@
 
                     loadSettingsRegion(window.location.href, false);
                 });
+
+                window.AdminSettingsAjax = {
+                    loadRegion: loadSettingsRegion,
+                    submitForm: submitSettingsForm,
+                    showToast,
+                };
             })();
         </script>
     @endpush

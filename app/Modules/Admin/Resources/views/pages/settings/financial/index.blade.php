@@ -13,7 +13,7 @@
     <section class="lg:col-span-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6" x-data="{ loading: false }">
         <h2 class="text-lg font-semibold text-slate-900">Financial Settings</h2>
 
-        <form method="POST" action="{{ route('admin.settings.financial.update') }}" class="mt-4 space-y-4" @submit="loading = true">
+        <form method="POST" action="{{ route('admin.settings.financial.update') }}" class="mt-4 space-y-4" data-settings-ajax-form @submit="loading = true">
             @csrf
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">

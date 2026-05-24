@@ -14,7 +14,7 @@
              x-data="{ loading: false, smsEnabled: @js((bool) old('sms_enabled', $settings['sms_enabled'])), whatsappEnabled: @js((bool) old('whatsapp_enabled', $settings['whatsapp_enabled'])) }">
         <h2 class="text-lg font-semibold text-slate-900">Notification Settings</h2>
 
-        <form method="POST" action="{{ route('admin.settings.notifications.update') }}" class="mt-4 space-y-5" @submit="loading = true">
+        <form method="POST" action="{{ route('admin.settings.notifications.update') }}" class="mt-4 space-y-5" data-settings-ajax-form @submit="loading = true">
             @csrf
 
             <div class="rounded-lg border border-slate-200 p-4">
