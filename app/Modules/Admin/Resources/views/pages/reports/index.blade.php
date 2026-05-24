@@ -122,18 +122,18 @@
     <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6">
         <h2 class="mb-4 text-lg font-semibold text-slate-900">Generate Report</h2>
 
-        <form action="{{ route('admin.reports.generate') }}" method="POST" class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <form id="report-generate-form" action="{{ route('admin.reports.generate') }}" method="POST" class="grid grid-cols-1 gap-4 md:grid-cols-3">
             @csrf
             <div class="md:col-span-2">
                 <label for="report_type" class="mb-1 block text-sm font-medium text-slate-700">Report Type</label>
                 <select id="report_type" name="report_type" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none">
                     @foreach ($reportTypes as $type)
-                        <option value="{{ $type }}">{{ str_replace('-', ' ', ucwords($type, '-')) }}</option>
+                        <option value="{{ $type }}" @selected(($selectedReportType ?? '') === $type)>{{ str_replace('-', ' ', ucwords($type, '-')) }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="flex items-end">
-                <button type="submit" class="w-full rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Generate Preview</button>
+                <button id="report-generate-button" type="submit" class="w-full rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Generate Preview</button>
             </div>
         </form>
 
@@ -141,10 +141,192 @@
             <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-600">Quick Downloads</h3>
             <div class="mt-3 flex flex-wrap gap-2">
                 @foreach ($reportTypes as $type)
-                    <a href="{{ route('admin.reports.download', $type) }}" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-900">{{ str_replace('-', ' ', ucwords($type, '-')) }}</a>
+                    <a href="{{ route('admin.reports.download', $type) }}" data-report-type="{{ $type }}" class="js-report-download rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-slate-400 hover:text-slate-900">{{ str_replace('-', ' ', ucwords($type, '-')) }}</a>
                 @endforeach
+            </div>
+        </div>
+
+        <div id="report-preview-wrapper" class="mt-6 border-t border-slate-200 pt-4 {{ empty($previewReport) ? 'hidden' : '' }}">
+            <h3 id="report-preview-title" class="text-base font-semibold text-slate-900">
+                @if (!empty($previewReport))
+                    Preview: {{ $previewReport['title'] }}
+                @else
+                    Preview
+                @endif
+            </h3>
+            <div class="mt-3 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                        <tr>
+                            <th class="px-3 py-2">Metric</th>
+                            <th class="px-3 py-2 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-preview-body">
+                        @if (!empty($previewReport))
+                            @foreach ($previewReport['rows'] as $row)
+                                <tr class="border-b border-slate-200">
+                                    <td class="px-3 py-2 text-slate-700">{{ $row['label'] }}</td>
+                                    <td class="px-3 py-2 text-right font-medium text-slate-900">BDT {{ number_format((float) $row['value'], 2) }}</td>
+                                </tr>
+                            @endforeach
+                        @endif
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>
 </div>
 @endsection
+
+@push('scripts')
+    <script>
+        (function() {
+            const form = document.getElementById('report-generate-form');
+            const submitButton = document.getElementById('report-generate-button');
+            const typeSelect = document.getElementById('report_type');
+            const previewWrapper = document.getElementById('report-preview-wrapper');
+            const previewTitle = document.getElementById('report-preview-title');
+            const previewBody = document.getElementById('report-preview-body');
+            const downloadLinks = document.querySelectorAll('.js-report-download');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            function showToast(text, isError = false) {
+                if (typeof window.Toastify !== 'function') {
+                    return;
+                }
+
+                Toastify({
+                    text,
+                    duration: 3000,
+                    gravity: 'top',
+                    position: 'right',
+                    stopOnFocus: true,
+                    style: { background: isError ? '#ef4444' : '#22c55e' },
+                }).showToast();
+            }
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+            }
+
+            function renderPreview(payload) {
+                if (!payload || !Array.isArray(payload.rows)) {
+                    return;
+                }
+
+                previewTitle.textContent = `Preview: ${payload.title}`;
+                previewBody.innerHTML = payload.rows
+                    .map((row) => {
+                        const amount = Number(row.value || 0).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        });
+
+                        return `<tr class="border-b border-slate-200">
+                            <td class="px-3 py-2 text-slate-700">${escapeHtml(row.label)}</td>
+                            <td class="px-3 py-2 text-right font-medium text-slate-900">BDT ${amount}</td>
+                        </tr>`;
+                    })
+                    .join('');
+
+                previewWrapper.classList.remove('hidden');
+            }
+
+            if (form && submitButton && typeSelect) {
+                form.addEventListener('submit', async function(event) {
+                    event.preventDefault();
+
+                    submitButton.disabled = true;
+                    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+
+                    const originalLabel = submitButton.textContent;
+                    submitButton.textContent = 'Generating...';
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                Accept: 'application/json',
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                'X-CSRF-TOKEN': csrfToken,
+                            },
+                            body: new URLSearchParams(new FormData(form)),
+                        });
+
+                        const payload = await response.json();
+
+                        if (!response.ok) {
+                            const firstError = payload?.errors ? Object.values(payload.errors)[0]?.[0] : null;
+                            throw new Error(firstError || 'Failed to generate report preview.');
+                        }
+
+                        renderPreview(payload?.data?.preview_report);
+
+                        const selectedType = payload?.data?.selected_report_type || typeSelect.value;
+                        const nextUrl = `{{ route('admin.reports.index') }}?preview=1&report_type=${encodeURIComponent(selectedType)}`;
+                        window.history.replaceState({}, '', nextUrl);
+
+                        showToast(payload?.message || 'Report preview generated.');
+                    } catch (error) {
+                        showToast(error.message || 'Failed to generate report preview.', true);
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                        submitButton.textContent = originalLabel;
+                    }
+                });
+            }
+
+            downloadLinks.forEach((link) => {
+                link.addEventListener('click', async function(event) {
+                    event.preventDefault();
+
+                    const originalText = link.textContent;
+                    link.classList.add('opacity-70', 'pointer-events-none');
+                    link.textContent = 'Preparing...';
+
+                    try {
+                        const response = await fetch(link.href, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Could not download report.');
+                        }
+
+                        const blob = await response.blob();
+                        const objectUrl = window.URL.createObjectURL(blob);
+                        const downloadLink = document.createElement('a');
+                        const contentDisposition = response.headers.get('Content-Disposition') || '';
+                        const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+                        const fallback = `report-${link.dataset.reportType || 'download'}.csv`;
+
+                        downloadLink.href = objectUrl;
+                        downloadLink.download = filenameMatch ? filenameMatch[1] : fallback;
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        downloadLink.remove();
+                        window.URL.revokeObjectURL(objectUrl);
+
+                        showToast('Report download started.');
+                    } catch (error) {
+                        showToast(error.message || 'Could not download report.', true);
+                    } finally {
+                        link.classList.remove('opacity-70', 'pointer-events-none');
+                        link.textContent = originalText;
+                    }
+                });
+            });
+        })();
+    </script>
+@endpush

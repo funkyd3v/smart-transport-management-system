@@ -7,8 +7,11 @@ namespace App\Modules\Admin\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Admin\Services\AdminOperationsService;
 use App\Modules\Admin\Services\AdminReportService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class ReportController extends Controller
@@ -18,18 +21,62 @@ final class ReportController extends Controller
         private readonly AdminReportService $reportService,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        return view('admin::pages.reports.index', $this->operationsService->reportsData($this->reportService->reportTypes()));
+        $reportTypes = $this->reportService->reportTypes();
+        $pageData = $this->operationsService->reportsData($reportTypes);
+
+        $selectedType = (string) $request->input('report_type', '');
+        $shouldPreview = (bool) $request->boolean('preview');
+
+        if ($shouldPreview && $selectedType !== '' && $this->reportService->isValidReportType($selectedType)) {
+            $pageData['selectedReportType'] = $selectedType;
+            $pageData['previewReport'] = $this->reportService->previewPayload($selectedType, $pageData['stats']);
+        } else {
+            $pageData['selectedReportType'] = null;
+            $pageData['previewReport'] = null;
+        }
+
+        return view('admin::pages.reports.index', $pageData);
     }
 
-    public function generate(Request $request): RedirectResponse
+    public function generate(Request $request): RedirectResponse|JsonResponse
     {
-        return back()->with('success', 'Report preview generated.');
+        $validated = $request->validate([
+            'report_type' => ['required', 'string', Rule::in($this->reportService->reportTypes())],
+        ]);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            $stats = $this->operationsService->reportsData($this->reportService->reportTypes())['stats'];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Report preview generated.',
+                'data' => [
+                    'selected_report_type' => $validated['report_type'],
+                    'preview_report' => $this->reportService->previewPayload($validated['report_type'], $stats),
+                ],
+            ]);
+        }
+
+        return redirect()->route('admin.reports.index', [
+            'preview' => 1,
+            'report_type' => $validated['report_type'],
+        ])->with('toast_success', 'Report preview generated.');
     }
 
-    public function download(string $type): RedirectResponse
+    public function download(string $type): Response
     {
-        return back()->with('success', 'Report download started: '.$type);
+        if (! $this->reportService->isValidReportType($type)) {
+            abort(404);
+        }
+
+        $stats = $this->operationsService->reportsData($this->reportService->reportTypes())['stats'];
+        $csv = $this->reportService->csvPayload($type, $stats);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="report-'.$type.'-'.now()->format('YmdHis').'.csv"',
+        ]);
     }
 }
