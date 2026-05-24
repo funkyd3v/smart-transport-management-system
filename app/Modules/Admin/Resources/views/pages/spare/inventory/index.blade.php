@@ -118,16 +118,6 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        if (@json(session()->has('toast_success'))) {
-            Toastify({
-                text: @json(session('toast_success')),
-                duration: 3000,
-                gravity: 'top',
-                position: 'right',
-                style: { background: '#22c55e' },
-            }).showToast();
-        }
-
         function bindInventoryDeleteActions() {
             document.querySelectorAll('#inventory-ajax-region .js-delete-part').forEach((form) => {
                 if (form.dataset.boundDelete === '1') {

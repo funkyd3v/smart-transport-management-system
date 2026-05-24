@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ReferenceDataSeeder::class,
             SpareCategorySeeder::class,
+            SpareSaleTypeSeeder::class,
             AdminSeeder::class,
             ManagerSeeder::class,
             DriverSeeder::class,

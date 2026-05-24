@@ -18,12 +18,15 @@ class SpareSale extends Model
         'spare_part_id',
         'buyer_name',
         'quantity',
+        'quantity_sold',
         'sale_price',
         'purchase_price_snapshot',
         'profit',
         'note',
         'sold_at',
+        'sale_date',
         'created_by',
+        'sold_by',
     ];
 
     protected function casts(): array

@@ -76,17 +76,22 @@ class SpareSaleService
 
             $profit = (float) ($dto->salePrice - $purchasePriceSnapshot);
 
+            $saleQuantity = $saleType->name === 'spare_part' ? $quantity : null;
+
             $sale = $this->saleRepository->createSale([
                 'sale_type_id' => $dto->saleTypeId,
                 'spare_part_id' => $part?->id,
                 'buyer_name' => $dto->buyerName,
-                'quantity' => $saleType->name === 'spare_part' ? $quantity : null,
+                'quantity' => $saleQuantity,
+                'quantity_sold' => $saleQuantity ?? 0,
                 'sale_price' => $dto->salePrice,
                 'purchase_price_snapshot' => $purchasePriceSnapshot,
                 'profit' => $profit,
                 'note' => $dto->note,
                 'sold_at' => $dto->soldAt,
+                'sale_date' => $dto->soldAt,
                 'created_by' => $dto->createdBy,
+                'sold_by' => $dto->createdBy,
             ]);
 
             $this->cashbookService->record([

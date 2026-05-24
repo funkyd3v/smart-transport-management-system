@@ -91,6 +91,49 @@
 
 @stack('scripts')
 
+<script>
+	window.addEventListener('load', function() {
+		if (typeof window.Toastify !== 'function') {
+			return;
+		}
+
+		const toastQueue = [];
+
+		if (@json(session()->has('toast_success'))) {
+			toastQueue.push({ text: @json(session('toast_success')), background: '#22c55e', duration: 3000 });
+		}
+
+		if (@json(session()->has('toast_error'))) {
+			toastQueue.push({ text: @json(session('toast_error')), background: '#ef4444', duration: 4000 });
+		}
+
+		if (@json(session()->has('toast_warning'))) {
+			toastQueue.push({ text: @json(session('toast_warning')), background: '#f59e0b', duration: 4000 });
+		}
+
+		if (@json(session()->has('toast_info'))) {
+			toastQueue.push({ text: @json(session('toast_info')), background: '#3b82f6', duration: 3000 });
+		}
+
+		if (@json($errors->any())) {
+			toastQueue.push({ text: @json($errors->first()), background: '#ef4444', duration: 4500 });
+		}
+
+		toastQueue.forEach((toast, index) => {
+			setTimeout(() => {
+				Toastify({
+					text: toast.text,
+					duration: toast.duration,
+					gravity: 'top',
+					position: 'right',
+					stopOnFocus: true,
+					style: { background: toast.background },
+				}).showToast();
+			}, index * 160);
+		});
+	});
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 </body>

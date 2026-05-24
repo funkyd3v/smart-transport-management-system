@@ -20,10 +20,14 @@ class SparePart extends Model
         'ulid',
         'category_id',
         'name',
+        'part_name',
         'condition',
         'source_memo_number',
         'source_truck_id',
+        'memo_number',
+        'sourced_from_truck_id',
         'quantity',
+        'quantity_in_stock',
         'purchase_price',
     ];
 
@@ -31,6 +35,7 @@ class SparePart extends Model
     {
         return [
             'quantity' => 'integer',
+            'quantity_in_stock' => 'integer',
             'purchase_price' => 'decimal:2',
         ];
     }

@@ -59,10 +59,14 @@ class SpareService
         $part = $this->repository->createPart([
             'category_id' => $dto->categoryId,
             'name' => $dto->name,
+            'part_name' => $dto->name,
             'condition' => $dto->condition,
             'source_memo_number' => $dto->sourceMemoNumber,
             'source_truck_id' => $dto->sourceTruckId,
+            'memo_number' => $dto->sourceMemoNumber,
+            'sourced_from_truck_id' => $dto->sourceTruckId,
             'quantity' => $dto->quantity,
+            'quantity_in_stock' => $dto->quantity,
             'purchase_price' => $dto->purchasePrice,
         ]);
 
@@ -82,10 +86,14 @@ class SpareService
         $updated = $this->repository->updatePart($part, [
             'category_id' => $dto->categoryId,
             'name' => $dto->name,
+            'part_name' => $dto->name,
             'condition' => $dto->condition,
             'source_memo_number' => $dto->sourceMemoNumber,
             'source_truck_id' => $dto->sourceTruckId,
+            'memo_number' => $dto->sourceMemoNumber,
+            'sourced_from_truck_id' => $dto->sourceTruckId,
             'quantity' => $dto->quantity,
+            'quantity_in_stock' => $dto->quantity,
             'purchase_price' => $dto->purchasePrice,
         ]);
 
