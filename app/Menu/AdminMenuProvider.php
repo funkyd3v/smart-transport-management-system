@@ -27,12 +27,12 @@ class AdminMenuProvider implements MenuProviderInterface
                     ],
                     [
                         'name' => 'Trips',
-                        'icon' => 'truck',
+                        'icon' => 'route',
                         'path' => $this->safeRoute('admin.trips.index'),
                     ],
                     [
                         'name' => 'Finance',
-                        'icon' => 'chart',
+                        'icon' => 'finance',
                         'subItems' => [
                             [
                                 'name' => 'Overview',
@@ -50,7 +50,7 @@ class AdminMenuProvider implements MenuProviderInterface
                     ],
                     [
                         'name' => 'Drivers',
-                        'icon' => 'table',
+                        'icon' => 'steering-wheel',
                         'path' => $this->safeRoute('admin.drivers.index'),
                     ],
                     [
@@ -60,12 +60,12 @@ class AdminMenuProvider implements MenuProviderInterface
                     ],
                     [
                         'name' => 'Clients',
-                        'icon' => 'users',
+                        'icon' => 'client',
                         'path' => $this->safeRoute('admin.clients.index'),
                     ],
                     [
                         'name' => 'Spare Parts',
-                        'icon' => 'table',
+                        'icon' => 'wrench',
                         'subItems' => [
                             [
                                 'name' => 'Inventory',
@@ -79,12 +79,12 @@ class AdminMenuProvider implements MenuProviderInterface
                     ],
                     [
                         'name' => 'Reports',
-                        'icon' => 'chart',
+                        'icon' => 'reports',
                         'path' => $this->safeRoute('admin.reports.index'),
                     ],
                     [
                         'name' => 'Audit Log',
-                        'icon' => 'table',
+                        'icon' => 'audit-log',
                         'path' => $this->safeRoute('admin.audit.index'),
                     ],
                     [
