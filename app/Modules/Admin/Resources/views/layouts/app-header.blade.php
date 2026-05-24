@@ -1,11 +1,18 @@
 <header
- class="sticky top-0 z-99999 flex w-full min-w-0 overflow-visible bg-white border-gray-200 xl:border-b"
+ class="fixed top-0 left-0 right-0 z-99999 flex min-w-0 overflow-visible border-gray-200 bg-white shadow-sm transition-all duration-300 ease-in-out xl:border-b"
+ :class="{
+ 'xl:left-[290px]': $store.sidebar.isExpanded || $store.sidebar.isHovered,
+ 'xl:left-[90px]': !$store.sidebar.isExpanded && !$store.sidebar.isHovered
+ }"
  x-data="{
  isApplicationMenuOpen: false,
  toggleApplicationMenu() {
  this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
  }
  }">
+ @php
+	 $companyName = (string) setting('company_name', 'TransCorp');
+ @endphp
  <div class="flex min-w-0 grow flex-col items-center justify-between xl:flex-row xl:px-6">
  <div
  class="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 sm:gap-4 xl:justify-normal xl:border-b-0 xl:px-0 lg:py-4">
@@ -52,7 +59,7 @@
  <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center overflow-hidden xl:hidden" aria-label="TransCorp dashboard">
  <h1 class="text-2xl font-black tracking-tighter uppercase select-none sm:text-3xl">
  <span class="inline-block bg-gradient-to-r from-[#DF7F07] via-[#FFD199] to-[#DF7F07] bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient_3s_linear_infinite]">
- TransCorp
+ {{ $companyName }}
  </span>
  </h1>
  </a>

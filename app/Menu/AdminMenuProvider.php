@@ -90,7 +90,20 @@ class AdminMenuProvider implements MenuProviderInterface
                     [
                         'name' => 'Settings',
                         'icon' => 'settings',
-                        'path' => $this->safeRoute('admin.settings.index'),
+                        'subItems' => [
+                            [
+                                'name' => 'General',
+                                'path' => $this->safeRoute('admin.settings.general.index'),
+                            ],
+                            [
+                                'name' => 'Financial',
+                                'path' => $this->safeRoute('admin.settings.financial.index'),
+                            ],
+                            [
+                                'name' => 'Notifications',
+                                'path' => $this->safeRoute('admin.settings.notifications.index'),
+                            ],
+                        ],
                     ],
                 ],
             ],

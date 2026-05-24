@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(MenuProviderInterface::class, function () {
-            return MenuResolver::resolve((string) request()->segment(1));
+            return MenuResolver::resolve((string) app(Request::class)->segment(1));
         });
     }
 
@@ -33,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        require_once app_path('Helpers/SettingHelper.php');
+
         Gate::policy(Trip::class, TripPolicy::class);
         Gate::policy(Client::class, ClientPolicy::class);
 

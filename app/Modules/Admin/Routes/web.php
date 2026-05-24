@@ -9,7 +9,10 @@ use App\Modules\Admin\Http\Controllers\DriverController;
 use App\Modules\Admin\Http\Controllers\FinanceController;
 use App\Modules\Admin\Http\Controllers\ProfileController;
 use App\Modules\Admin\Http\Controllers\ReportController;
-use App\Modules\Admin\Http\Controllers\SettingsController;
+use App\Modules\Admin\Http\Controllers\Settings\FinancialSettingController;
+use App\Modules\Admin\Http\Controllers\Settings\GeneralSettingController;
+use App\Modules\Admin\Http\Controllers\Settings\NotificationSettingController;
+use App\Modules\Admin\Http\Controllers\Settings\UserManagementController;
 use App\Modules\Admin\Http\Controllers\TripController;
 use App\Modules\Admin\Http\Controllers\TruckController;
 use App\Modules\Admin\Http\Controllers\UserController;
@@ -68,8 +71,17 @@ Route::middleware(['web', 'auth', 'verified', 'role:admin', 'throttle:60,1'])
 
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit.index');
 
-        Route::middleware(['password.confirm'])->group(function (): void {
-            Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
-            Route::patch('/settings/{section}', [SettingsController::class, 'update'])->name('settings.update');
+        Route::prefix('settings')->name('settings.')->group(function (): void {
+            Route::get('general', [GeneralSettingController::class, 'index'])->name('general.index');
+            Route::post('general', [GeneralSettingController::class, 'update'])->name('general.update');
+
+            Route::get('financial', [FinancialSettingController::class, 'index'])->name('financial.index');
+            Route::post('financial', [FinancialSettingController::class, 'update'])->name('financial.update');
+
+            Route::resource('users', UserManagementController::class)->except(['show']);
+            Route::patch('users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('users.toggle-status');
+
+            Route::get('notifications', [NotificationSettingController::class, 'index'])->name('notifications.index');
+            Route::post('notifications', [NotificationSettingController::class, 'update'])->name('notifications.update');
         });
     });

@@ -11,6 +11,15 @@ class SmsNotificationStrategy implements NotificationStrategyInterface
 {
     public function send(TripNotification $notification): bool
     {
+        $smsEnabled = filter_var(setting('sms_enabled', false), FILTER_VALIDATE_BOOLEAN);
+        $provider = (string) setting('sms_provider', '');
+        $apiKey = (string) setting('sms_api_key', '');
+        $senderName = (string) setting('sms_sender_name', '');
+
+        if (! $smsEnabled || $provider === '' || $apiKey === '' || $senderName === '') {
+            return false;
+        }
+
         return true;
     }
 }

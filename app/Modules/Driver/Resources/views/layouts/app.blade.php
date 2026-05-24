@@ -128,7 +128,7 @@
             <!-- app header start -->
             @include('driver::layouts.app-header')
             <!-- app header end -->
-            <div class="mx-auto min-w-0 max-w-(--breakpoint-2xl) p-4 md:p-6">
+            <div class="mx-auto min-w-0 max-w-(--breakpoint-2xl) p-4 pt-24 md:p-6 md:pt-28">
                 @yield('content')
             </div>
         </div>

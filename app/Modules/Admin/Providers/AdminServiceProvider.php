@@ -14,6 +14,10 @@ use App\Modules\Admin\Repositories\AdminOperationsRepository;
 use App\Modules\Admin\Repositories\AdminOperationsRepositoryInterface;
 use App\Modules\Admin\Repositories\ProfileRepository;
 use App\Modules\Admin\Repositories\ProfileRepositoryInterface;
+use App\Modules\Admin\Repositories\Settings\SettingRepository;
+use App\Modules\Admin\Repositories\Settings\SettingRepositoryInterface;
+use App\Modules\Admin\Repositories\Settings\UserManagementRepository;
+use App\Modules\Admin\Repositories\Settings\UserManagementRepositoryInterface;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +29,8 @@ class AdminServiceProvider extends ServiceProvider
         $this->app->bind(AdminDashboardRepositoryInterface::class, AdminDashboardRepository::class);
         $this->app->bind(AdminOperationsRepositoryInterface::class, AdminOperationsRepository::class);
         $this->app->bind(ProfileRepositoryInterface::class, ProfileRepository::class);
+        $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
+        $this->app->bind(UserManagementRepositoryInterface::class, UserManagementRepository::class);
     }
 
     public function boot(): void

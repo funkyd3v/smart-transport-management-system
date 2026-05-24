@@ -1,5 +1,9 @@
 <header
-    class="sticky top-0 z-99999 flex w-full min-w-0 overflow-visible bg-white border-gray-200 dark:border-gray-800 dark:bg-gray-900 xl:border-b"
+    class="fixed top-0 left-0 right-0 z-99999 flex min-w-0 overflow-visible border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 transition-all duration-300 ease-in-out xl:border-b"
+    :class="{
+        'xl:left-[290px]': $store.sidebar.isExpanded || $store.sidebar.isHovered,
+        'xl:left-[90px]': !$store.sidebar.isExpanded && !$store.sidebar.isHovered
+    }"
     x-data="{
         isApplicationMenuOpen: false,
         toggleApplicationMenu() {
