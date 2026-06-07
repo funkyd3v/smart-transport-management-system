@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Trip\Listeners;
 
-use App\Modules\Trip\Events\PaymentRecorded;
+use App\Modules\Payment\Events\PaymentSucceeded;
+use App\Modules\Payment\Models\Payment;
 use App\Modules\Trip\Models\DueRecord;
-use App\Modules\Trip\Models\Payment;
 use App\Modules\Trip\Models\Trip;
 use Illuminate\Support\Facades\DB;
 
 class UpdateDueOnPayment
 {
-    public function handle(PaymentRecorded $event): void
+    public function handle(PaymentSucceeded $event): void
     {
         $payment = $event->payment;
 

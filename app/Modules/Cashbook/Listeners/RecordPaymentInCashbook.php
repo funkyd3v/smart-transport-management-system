@@ -6,13 +6,13 @@ namespace App\Modules\Cashbook\Listeners;
 
 use App\Modules\Cashbook\Enums\CashbookType;
 use App\Modules\Cashbook\Services\CashbookService;
-use App\Modules\Trip\Events\PaymentRecorded;
+use App\Modules\Payment\Events\PaymentSucceeded;
 
 class RecordPaymentInCashbook
 {
     public function __construct(private readonly CashbookService $cashbookService) {}
 
-    public function handle(PaymentRecorded $event): void
+    public function handle(PaymentSucceeded $event): void
     {
         $payment = $event->payment;
 

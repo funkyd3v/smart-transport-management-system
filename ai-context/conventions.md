@@ -26,7 +26,7 @@
 ## Event/Side-Effect Conventions
 - Financial consistency is event-driven:
 	- InvoiceGenerated creates/updates due records
-	- PaymentRecorded updates due records and trip due_amount
+	- PaymentSucceeded updates due records and trip due_amount
 	- TripStatusChanged triggers notifications/tracking side effects
 - Spare stock mutation side effects are observer-driven (low stock notifications).
 

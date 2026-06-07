@@ -7,6 +7,7 @@ use App\Modules\Cashbook\Providers\CashbookServiceProvider;
 use App\Modules\Client\Providers\ClientServiceProvider;
 use App\Modules\Driver\Providers\DriverServiceProvider;
 use App\Modules\Manager\Providers\ManagerServiceProvider;
+use App\Modules\Payment\Providers\PaymentServiceProvider;
 use App\Modules\Spare\Providers\SpareServiceProvider;
 use App\Modules\Trip\Providers\TripServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -22,6 +23,7 @@ return [
     DriverServiceProvider::class,
     ClientServiceProvider::class,
     SpareServiceProvider::class,
+    PaymentServiceProvider::class,
     TripServiceProvider::class,
     CashbookServiceProvider::class,
 ];

@@ -8,7 +8,7 @@ use App\Modules\Cashbook\Listeners\RecordExpenseInCashbook;
 use App\Modules\Cashbook\Listeners\RecordPaymentInCashbook;
 use App\Modules\Cashbook\Repositories\CashbookRepository;
 use App\Modules\Cashbook\Repositories\CashbookRepositoryInterface;
-use App\Modules\Trip\Events\PaymentRecorded;
+use App\Modules\Payment\Events\PaymentSucceeded;
 use App\Modules\Trip\Models\TripExpense;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -26,7 +26,7 @@ class CashbookServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../Routes/api.php');
         $this->loadViewsFrom(__DIR__.'/../Resources/views', 'cashbook');
 
-        Event::listen(PaymentRecorded::class, RecordPaymentInCashbook::class);
+        Event::listen(PaymentSucceeded::class, RecordPaymentInCashbook::class);
 
         Event::listen('eloquent.created: '.TripExpense::class, function (TripExpense $expense): void {
             app(RecordExpenseInCashbook::class)->handle($expense);

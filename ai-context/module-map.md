@@ -28,9 +28,13 @@
 
 ## Domain Operation Modules
 - Trip module
-	- Responsibilities: trip lifecycle, goods, expenses, payments, invoice generation, due synchronization, trip notifications, vehicle location tracking
+	- Responsibilities: trip lifecycle, goods, expenses, invoice generation, due synchronization, trip notifications, vehicle location tracking
 	- Route hubs: /admin/trips/*, /admin/invoices/*, /driver/trips/* plus generic REST routes
 	- Notable components: actions + DTOs + repository contracts + event/listener workflows
+- Payment module
+	- Responsibilities: payment domain orchestration, gateway abstraction/factory, payment transactions/attempts/webhooks/audits, payment domain events
+	- Route hubs: /payments/* and /api/payments/*
+	- Integrations: emits PaymentInitiated/PaymentSucceeded/PaymentFailed/PaymentCancelled/PaymentValidated; downstream modules subscribe via listeners
 - Spare module
 	- Responsibilities: spare inventory CRUD, sales recording, stock tracking, low-stock alerting
 	- Route hub: /admin/spare/* (admin.spare.*)
@@ -38,10 +42,10 @@
 - Cashbook module
 	- Responsibilities: cashbook ledger entries and views
 	- Route hubs: /cashbook/* and /api/cashbook/*
-	- Integrations: listens to trip payments and expense creation
+	- Integrations: listens to payment succeeded events and trip expense creation
 
 ## Supporting CRUD Modules (Generic Resource Pattern)
-- AuditLog, Auth, Dashboard, Due, Expense, Invoice, Notification, Payment, Report, Truck
+- AuditLog, Auth, Dashboard, Due, Expense, Invoice, Notification, Report, Truck
 - Common shape: Models + Controllers + Requests + Repositories + Resources + Routes/web.php + Routes/api.php
 - Most expose apiResource routes under both / and /api (legacy/generic scaffolding style)
 

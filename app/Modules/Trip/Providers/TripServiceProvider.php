@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Trip\Providers;
 
+use App\Modules\Payment\Events\PaymentSucceeded;
 use App\Modules\Trip\Events\InvoiceGenerated;
-use App\Modules\Trip\Events\PaymentRecorded;
 use App\Modules\Trip\Events\TripStatusChanged;
 use App\Modules\Trip\Listeners\CreateDueRecordOnInvoice;
 use App\Modules\Trip\Listeners\SendTripNotification;
@@ -36,6 +36,6 @@ class TripServiceProvider extends ServiceProvider
         Event::listen(TripStatusChanged::class, SendTripNotification::class);
         Event::listen(TripStatusChanged::class, StopTripTrackingOnStatusChange::class);
         Event::listen(InvoiceGenerated::class, CreateDueRecordOnInvoice::class);
-        Event::listen(PaymentRecorded::class, UpdateDueOnPayment::class);
+        Event::listen(PaymentSucceeded::class, UpdateDueOnPayment::class);
     }
 }

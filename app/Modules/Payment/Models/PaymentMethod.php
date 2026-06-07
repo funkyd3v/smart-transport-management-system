@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Payment\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +15,6 @@ class PaymentMethod extends Model
         'name',
         'description',
     ];
-
-    protected function casts(): array
-    {
-        return [];
-    }
 
     public function payments(): HasMany
     {
