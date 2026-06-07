@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Trip\Jobs;
 
-use App\Modules\Trip\Enums\NotificationType;
+use App\Modules\Communication\Actions\QueueCommunicationAction;
+use App\Modules\Communication\DTOs\CommunicationRequestDTO;
+use App\Modules\Communication\Enums\CommunicationChannel;
 use App\Modules\Trip\Models\TripNotification;
-use App\Modules\Trip\Notifications\SmsNotificationStrategy;
-use App\Modules\Trip\Notifications\WhatsAppNotificationStrategy;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,7 +23,7 @@ class SendTripNotificationJob implements ShouldQueue
 
     public function __construct(private readonly int $notificationId) {}
 
-    public function handle(SmsNotificationStrategy $sms, WhatsAppNotificationStrategy $whatsapp): void
+    public function handle(QueueCommunicationAction $queueCommunication): void
     {
         $notification = TripNotification::query()->find($this->notificationId);
 
@@ -31,14 +31,46 @@ class SendTripNotificationJob implements ShouldQueue
             return;
         }
 
-        $isSent = match (NotificationType::from($notification->type)) {
-            NotificationType::Sms => $sms->send($notification),
-            NotificationType::WhatsApp => $whatsapp->send($notification),
-            NotificationType::System => true,
+        $channel = match ($notification->type) {
+            'sms' => CommunicationChannel::Sms,
+            'whatsapp' => CommunicationChannel::WhatsApp,
+            default => CommunicationChannel::InApp,
         };
 
-        $notification->status = $isSent ? 'sent' : 'failed';
-        $notification->sent_at = $isSent ? now() : null;
-        $notification->save();
+        $recipient = $notification->recipient_phone;
+
+        if ($channel === CommunicationChannel::InApp) {
+            $recipient = (string) $notification->user_id;
+        }
+
+        try {
+            ($queueCommunication)(new CommunicationRequestDTO(
+                channel: $channel,
+                recipient: (string) $recipient,
+                subject: 'Trip Notification',
+                body: (string) $notification->message,
+                provider: null,
+                templateKey: null,
+                templateData: [
+                    'trip_id' => $notification->trip_id,
+                ],
+                requestedBy: (int) $notification->user_id,
+                referenceType: TripNotification::class,
+                referenceId: (string) $notification->id,
+                scheduledAt: null,
+                metadata: [
+                    'legacy_trip_notification_ulid' => $notification->ulid,
+                    'channel' => $notification->channel,
+                ],
+            ));
+
+            $notification->status = 'sent';
+            $notification->sent_at = now();
+            $notification->save();
+        } catch (\Throwable) {
+            $notification->status = 'failed';
+            $notification->sent_at = null;
+            $notification->save();
+        }
     }
 }

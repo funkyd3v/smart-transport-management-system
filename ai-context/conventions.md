@@ -28,6 +28,9 @@
 	- InvoiceGenerated creates/updates due records
 	- PaymentSucceeded updates due records and trip due_amount
 	- TripStatusChanged triggers notifications/tracking side effects
+- Communication flows are queue-first and event-driven:
+	- MessageQueued -> SendCommunicationJob -> MessageSending -> MessageSent|MessageFailed
+	- OtpGenerated/OtpVerified events are emitted from Communication module OTP service
 - Spare stock mutation side effects are observer-driven (low stock notifications).
 
 ## Frontend/Template Conventions

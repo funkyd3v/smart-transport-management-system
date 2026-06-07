@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Admin\Providers\AdminServiceProvider;
 use App\Modules\Cashbook\Providers\CashbookServiceProvider;
 use App\Modules\Client\Providers\ClientServiceProvider;
+use App\Modules\Communication\Providers\CommunicationServiceProvider;
 use App\Modules\Driver\Providers\DriverServiceProvider;
 use App\Modules\Manager\Providers\ManagerServiceProvider;
 use App\Modules\Payment\Providers\PaymentServiceProvider;
@@ -22,6 +23,7 @@ return [
     ManagerServiceProvider::class,
     DriverServiceProvider::class,
     ClientServiceProvider::class,
+    CommunicationServiceProvider::class,
     SpareServiceProvider::class,
     PaymentServiceProvider::class,
     TripServiceProvider::class,

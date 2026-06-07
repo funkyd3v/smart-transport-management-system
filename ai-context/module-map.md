@@ -30,7 +30,11 @@
 - Trip module
 	- Responsibilities: trip lifecycle, goods, expenses, invoice generation, due synchronization, trip notifications, vehicle location tracking
 	- Route hubs: /admin/trips/*, /admin/invoices/*, /driver/trips/* plus generic REST routes
-	- Notable components: actions + DTOs + repository contracts + event/listener workflows
+	- Notable components: actions + DTOs + repository contracts + event/listener workflows; trip notification queue now delegates delivery to Communication module
+- Communication module
+	- Responsibilities: channel-agnostic/provider-agnostic communication orchestration (sms/whatsapp/email/push/in_app), Twilio SMS provider adapter, OTP generation/verification, templates, queue-driven delivery
+	- Route hubs: /api/communications/*
+	- Integrations: emits MessageQueued/MessageSending/MessageSent/MessageFailed/MessageDelivered and OtpGenerated/OtpVerified; reusable by any module without direct provider coupling
 - Payment module
 	- Responsibilities: payment domain orchestration, gateway abstraction/factory, payment transactions/attempts/webhooks/audits, payment domain events
 	- Route hubs: /payments/* and /api/payments/*
