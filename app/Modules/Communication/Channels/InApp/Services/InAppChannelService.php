@@ -20,8 +20,10 @@ class InAppChannelService implements InAppChannelInterface
     {
         return new CommunicationDispatchResultDTO(
             success: true,
+            provider: $this->key(),
             providerMessageId: null,
             status: 'sent',
+            responseCode: 'accepted',
             message: 'In-app communication recorded.',
             rawResponse: [],
         );

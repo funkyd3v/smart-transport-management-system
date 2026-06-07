@@ -19,7 +19,7 @@ class SSLCommerzGateway implements PaymentGatewayInterface
     {
         return new GatewayResponseDTO(
             success: true,
-            status: 'initiated',
+            status: 'succeeded',
             gatewayTransactionId: $payload['gateway_transaction_id'] ?? null,
             providerReference: $payload['provider_reference'] ?? ('SSLCZ-'.$payment->ulid),
             message: 'SSLCommerz initiation prepared.',

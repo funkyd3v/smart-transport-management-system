@@ -21,8 +21,10 @@ class FallbackChannelService implements CommunicationChannelInterface
     {
         return new CommunicationDispatchResultDTO(
             success: false,
+            provider: $this->key(),
             providerMessageId: null,
             status: 'failed',
+            responseCode: 'provider_not_configured',
             message: sprintf('No provider configured for [%s] channel.', $this->channelKey),
         );
     }

@@ -7,6 +7,7 @@ namespace App\Modules\Communication\Providers;
 use App\Modules\Communication\Channels\Email\Providers\EmailChannelService;
 use App\Modules\Communication\Channels\InApp\Services\InAppChannelService;
 use App\Modules\Communication\Channels\Push\Providers\PushChannelService;
+use App\Modules\Communication\Channels\SMS\Providers\BulkSmsBdProvider;
 use App\Modules\Communication\Channels\SMS\Providers\TwilioSmsProvider;
 use App\Modules\Communication\Channels\SMS\Services\SmsChannelService;
 use App\Modules\Communication\Channels\WhatsApp\Providers\WhatsAppChannelService;
@@ -33,6 +34,7 @@ class CommunicationServiceProvider extends ServiceProvider
             $defaults = [
                 'sms' => [
                     'twilio' => TwilioSmsProvider::class,
+                    'bulksmsbd' => BulkSmsBdProvider::class,
                 ],
                 'whatsapp' => [],
                 'email' => [],

@@ -10,6 +10,7 @@ use App\Modules\Payment\Enums\PaymentStatus;
 use App\Modules\Payment\Events\PaymentCancelled;
 use App\Modules\Payment\Events\PaymentFailed;
 use App\Modules\Payment\Events\PaymentInitiated;
+use App\Modules\Payment\Events\PaymentProcessing;
 use App\Modules\Payment\Events\PaymentSucceeded;
 use App\Modules\Payment\Events\PaymentValidated;
 use App\Modules\Payment\Factories\PaymentGatewayFactory;
@@ -78,6 +79,7 @@ class PaymentService
             $status = match (strtolower((string) $response->status)) {
                 PaymentStatus::Cancelled->value => PaymentStatus::Cancelled,
                 PaymentStatus::Failed->value => PaymentStatus::Failed,
+                PaymentStatus::Initiated->value => PaymentStatus::Initiated,
                 default => $response->success ? PaymentStatus::Succeeded : PaymentStatus::Failed,
             };
 
@@ -89,7 +91,7 @@ class PaymentService
 
             $this->repository->createAudit([
                 'payment_id' => $payment->id,
-                'event' => 'payment_'.$status->value,
+                'event' => $status === PaymentStatus::Initiated ? 'payment_processing' : 'payment_'.$status->value,
                 'description' => $response->message,
                 'meta' => $response->rawResponse,
                 'performed_by' => $dto->collectedBy,
@@ -98,6 +100,8 @@ class PaymentService
             if ($status === PaymentStatus::Succeeded) {
                 $events[] = new PaymentValidated($payment);
                 $events[] = new PaymentSucceeded($payment);
+            } elseif ($status === PaymentStatus::Initiated) {
+                $events[] = new PaymentProcessing($payment);
             } elseif ($status === PaymentStatus::Cancelled) {
                 $events[] = new PaymentCancelled($payment);
             } else {

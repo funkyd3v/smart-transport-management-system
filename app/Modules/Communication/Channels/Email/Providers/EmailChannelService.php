@@ -20,8 +20,10 @@ class EmailChannelService implements EmailChannelInterface
     {
         return new CommunicationDispatchResultDTO(
             success: false,
+            provider: $this->key(),
             providerMessageId: null,
             status: 'failed',
+            responseCode: 'provider_not_configured',
             message: 'Email provider is not configured yet.',
         );
     }

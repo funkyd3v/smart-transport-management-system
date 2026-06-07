@@ -20,8 +20,10 @@ class PushChannelService implements PushChannelInterface
     {
         return new CommunicationDispatchResultDTO(
             success: false,
+            provider: $this->key(),
             providerMessageId: null,
             status: 'failed',
+            responseCode: 'provider_not_configured',
             message: 'Push provider is not configured yet.',
         );
     }

@@ -133,6 +133,7 @@ Role Protection               Middleware + Policy
 - Queue usage exists where async delivery matters:
   - SendTripNotificationJob implements ShouldQueue and is dispatched by listener
 - Not every flow is async; many listeners run sync and perform transactional updates.
+- Payment gateway validation should verify provider-reported amounts and currency before marking a payment as succeeded.
 
 ## UI Pattern
 - Blade is module-scoped using namespace views (admin::, manager::, driver::, client::, etc.).

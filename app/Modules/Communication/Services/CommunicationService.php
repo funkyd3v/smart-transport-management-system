@@ -122,10 +122,14 @@ class CommunicationService
         $this->repository->createAttempt([
             'communication_id' => $communication->id,
             'attempt_no' => $attemptNo,
-            'provider' => $communication->provider,
+            'provider' => $dispatchResult->provider ?? $communication->provider,
             'status' => $dispatchResult->status,
             'provider_message_id' => $dispatchResult->providerMessageId,
-            'response_payload' => $dispatchResult->rawResponse,
+            'response_payload' => [
+                ...$dispatchResult->rawResponse,
+                'normalized_response_code' => $dispatchResult->responseCode,
+                'normalized_provider' => $dispatchResult->provider,
+            ],
             'error_message' => $dispatchResult->success ? null : $dispatchResult->message,
             'attempted_at' => now(),
         ]);
@@ -136,6 +140,7 @@ class CommunicationService
             'sent_at' => $dispatchResult->success ? now() : null,
             'failed_at' => $dispatchResult->success ? null : now(),
             'failure_reason' => $dispatchResult->success ? null : $dispatchResult->message,
+            'provider' => $dispatchResult->provider ?? $communication->provider,
         ]);
 
         $this->repository->createLog([
@@ -144,6 +149,8 @@ class CommunicationService
             'message' => $dispatchResult->message,
             'context' => [
                 'provider_message_id' => $dispatchResult->providerMessageId,
+                'provider' => $dispatchResult->provider,
+                'response_code' => $dispatchResult->responseCode,
             ],
             'logged_at' => now(),
         ]);

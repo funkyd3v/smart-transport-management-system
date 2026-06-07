@@ -20,8 +20,10 @@ class WhatsAppChannelService implements WhatsAppChannelInterface
     {
         return new CommunicationDispatchResultDTO(
             success: false,
+            provider: $this->key(),
             providerMessageId: null,
             status: 'failed',
+            responseCode: 'provider_not_configured',
             message: 'WhatsApp provider is not configured yet.',
         );
     }

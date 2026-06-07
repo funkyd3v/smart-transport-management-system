@@ -22,18 +22,27 @@ class TwilioSmsProvider implements SmsProviderInterface
         $sid = (string) config('communication.providers.sms.twilio.account_sid');
         $token = (string) config('communication.providers.sms.twilio.auth_token');
         $from = (string) config('communication.providers.sms.twilio.from');
+        $timeout = (int) config('communication.providers.sms.twilio.timeout', 10);
+        $connectTimeout = (int) config('communication.providers.sms.twilio.connect_timeout', 5);
+        $retryTimes = (int) config('communication.providers.sms.twilio.retry_times', 2);
+        $retrySleepMs = (int) config('communication.providers.sms.twilio.retry_sleep_ms', 250);
 
         if ($sid === '' || $token === '' || $from === '') {
             return new CommunicationDispatchResultDTO(
-                success: false,
-                providerMessageId: null,
-                status: 'failed',
-                message: 'Twilio credentials are not configured.',
+                false,
+                $this->key(),
+                null,
+                'failed',
+                'config_missing',
+                'Twilio credentials are not configured.',
             );
         }
 
         try {
             $response = Http::asForm()
+                ->timeout($timeout)
+                ->connectTimeout($connectTimeout)
+                ->retry($retryTimes, $retrySleepMs, throw: false)
                 ->withBasicAuth($sid, $token)
                 ->post('https://api.twilio.com/2010-04-01/Accounts/'.$sid.'/Messages.json', [
                     'From' => $from,
@@ -45,19 +54,23 @@ class TwilioSmsProvider implements SmsProviderInterface
             $json = $response->json();
 
             return new CommunicationDispatchResultDTO(
-                success: $ok,
-                providerMessageId: is_array($json) ? ($json['sid'] ?? null) : null,
-                status: $ok ? 'sent' : 'failed',
-                message: $ok ? 'Message sent via Twilio.' : 'Twilio send failed.',
-                rawResponse: is_array($json) ? $json : ['response' => $response->body()],
+                $ok,
+                $this->key(),
+                is_array($json) ? ($json['sid'] ?? null) : null,
+                $ok ? 'sent' : 'failed',
+                (string) $response->status(),
+                $ok ? 'Message sent via Twilio.' : 'Twilio send failed.',
+                is_array($json) ? $json : ['response' => $response->body()],
             );
         } catch (Throwable $e) {
             return new CommunicationDispatchResultDTO(
-                success: false,
-                providerMessageId: null,
-                status: 'failed',
-                message: 'Twilio send exception.',
-                rawResponse: [
+                false,
+                $this->key(),
+                null,
+                'failed',
+                'exception',
+                'Twilio send exception.',
+                [
                     'error' => $e->getMessage(),
                 ],
             );

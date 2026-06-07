@@ -6,6 +6,7 @@ namespace App\Modules\Payment\Providers;
 
 use App\Modules\Payment\Contracts\PaymentRepositoryInterface;
 use App\Modules\Payment\Factories\PaymentGatewayFactory;
+use App\Modules\Payment\Gateways\Bkash\BkashGateway;
 use App\Modules\Payment\Gateways\Offline\OfflineGateway;
 use App\Modules\Payment\Gateways\SSLCommerz\SSLCommerzGateway;
 use App\Modules\Payment\Repositories\PaymentRepository;
@@ -23,6 +24,7 @@ class PaymentServiceProvider extends ServiceProvider
             $gateways = [
                 'offline' => OfflineGateway::class,
                 'sslcommerz' => SSLCommerzGateway::class,
+                'bkash' => BkashGateway::class,
                 ...$configured,
             ];
 
