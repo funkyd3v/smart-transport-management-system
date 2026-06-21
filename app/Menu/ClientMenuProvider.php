@@ -20,6 +20,11 @@ class ClientMenuProvider implements MenuProviderInterface
                         'icon' => 'dashboard',
                         'path' => $this->safeRoute('client.dashboard'),
                     ],
+                    [
+                        'name' => 'Payments',
+                        'icon' => 'dollarLine',
+                        'path' => $this->safeRoute('client.payments.index'),
+                    ],
                 ],
             ],
         ];

@@ -11,6 +11,7 @@ use App\Modules\Manager\Http\Requests\Client\UpdateClientRequest;
 use App\Modules\Manager\Services\ClientService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -47,11 +48,26 @@ class ClientController extends Controller
 
     public function store(StoreClientRequest $request): JsonResponse
     {
-        $this->clientService->create($request->validated() + ['created_by' => (int) $request->user()->id]);
+        $validated = $request->validated();
+        $plainPassword = (string) ($validated['password'] ?? Str::password(14));
+
+        $client = $this->clientService->create($validated + [
+            'password' => $plainPassword,
+            'created_by' => (int) $request->user()->id,
+        ])->loadMissing('user:id,email');
 
         return response()->json([
             'message' => 'Client created successfully.',
-        ]);
+            'client' => [
+                'id' => $client->id,
+                'name' => $client->name,
+            ],
+            'credentials' => [
+                'email' => $client->user?->email,
+                'phone' => $validated['phone_number'] ?? null,
+                'password' => $plainPassword,
+            ],
+        ], 201);
     }
 
     public function show(Client $client): View

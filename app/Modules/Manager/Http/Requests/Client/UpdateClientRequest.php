@@ -7,6 +7,7 @@ namespace App\Modules\Manager\Http\Requests\Client;
 use App\Modules\Client\Models\Client;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateClientRequest extends FormRequest
 {
@@ -17,14 +18,23 @@ class UpdateClientRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge(array_map(fn ($value) => is_string($value) ? strip_tags(trim($value)) : $value, $this->all()));
+        $sanitized = array_map(fn ($value) => is_string($value) ? strip_tags(trim($value)) : $value, $this->all());
+
+        if (empty($sanitized['phone_number']) && ! empty($sanitized['contact_number'])) {
+            $sanitized['phone_number'] = $sanitized['contact_number'];
+        }
+
+        $this->merge($sanitized);
     }
 
     public function rules(): array
     {
+        $client = $this->route('client');
+        $ignoreUserId = $client instanceof Client ? (int) ($client->user_id ?? 0) : 0;
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'contact_number' => ['required', 'regex:/^01[3-9]\d{8}$/'],
+            'phone_number' => ['required', 'regex:/^01[3-9]\d{8}$/', Rule::unique('users', 'phone')->ignore($ignoreUserId)],
             'client_type' => ['required', 'in:port,contractual,mega_project'],
             'project' => ['required_if:client_type,contractual,mega_project', 'nullable', 'string', 'max:255'],
             'project_agreement_number' => ['required_if:client_type,contractual,mega_project', 'nullable', 'string', 'max:100'],
@@ -36,6 +46,17 @@ class UpdateClientRequest extends FormRequest
                 $this->targetDateRule(),
             ],
             'status' => ['sometimes', 'in:active,inactive'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone_number.regex' => 'Phone number must be a valid Bangladeshi number (01XXXXXXXXX).',
+            'project.required_if' => 'Project is required for contractual and mega project clients.',
+            'project_agreement_number.required_if' => 'Project agreement number is required for contractual and mega project clients.',
+            'project_value.required_if' => 'Project value is required for contractual and mega project clients.',
+            'target_finishing_date.required_if' => 'Target finishing date is required for contractual and mega project clients.',
         ];
     }
 

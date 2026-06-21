@@ -208,19 +208,24 @@ class ClientRepository implements ClientRepositoryInterface
 
         if (! Schema::hasColumn($table, 'name') && Schema::hasColumn($table, 'user_id')) {
             $status = (string) ($data['status'] ?? 'active');
-            $phone = (string) ($data['contact_number'] ?? '');
+            $phone = (string) ($data['phone_number'] ?? $data['contact_number'] ?? '');
             $baseEmail = $phone !== '' ? 'client'.$phone.'@tms.local' : 'client'.Str::lower(Str::random(10)).'@tms.local';
-            $email = $baseEmail;
+            $email = (string) ($data['email'] ?? '');
+
+            if ($email === '') {
+                $email = $baseEmail;
+            }
 
             while (AuthUser::query()->where('email', $email)->exists()) {
-                $email = Str::before($baseEmail, '@').'_'.Str::lower(Str::random(6)).'@'.Str::after($baseEmail, '@');
+                $sourceEmail = $email !== '' ? $email : $baseEmail;
+                $email = Str::before($sourceEmail, '@').'_'.Str::lower(Str::random(6)).'@'.Str::after($sourceEmail, '@');
             }
 
             $user = AuthUser::query()->create([
                 'name' => (string) ($data['name'] ?? 'Client'),
                 'email' => $email,
                 'phone' => $phone,
-                'password_hash' => Hash::make(Str::password(16)),
+                'password_hash' => Hash::make((string) ($data['password'] ?? Str::password(16))),
                 'role' => 'client',
                 'is_active' => $status === 'active',
                 'approved_by' => $data['created_by'] ?? null,
@@ -304,7 +309,7 @@ class ClientRepository implements ClientRepositoryInterface
                 if ($user !== null) {
                     $user->forceFill([
                         'name' => $data['name'] ?? $user->name,
-                        'phone' => $data['contact_number'] ?? $user->phone,
+                        'phone' => $data['phone_number'] ?? $data['contact_number'] ?? $user->phone,
                         'is_active' => $status === 'active',
                     ]);
                     $user->save();
