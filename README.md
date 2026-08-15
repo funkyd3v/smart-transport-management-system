@@ -99,7 +99,7 @@ No local PHP, Node, or Composer installation is required.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/ahsan-ul-alam/transport-management-system.git
+git clone https://github.com/funkyd3v/smart-transport-management-system.git
 cd transport-management-system
 ```
 
