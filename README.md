@@ -21,14 +21,51 @@ A full-featured Transport Management System (TMS) built with **Laravel 12**, **T
 
 ## Features
 
-- **Role-based access control** — Admin, Manager, Driver, Client
-- **Trip management** — create, assign, and track trips in real time
-- **Fleet management** — truck registry and spare parts tracking
-- **Financial modules** — invoices, payments, expenses, cashbook, due management
-- **Audit logging** — full activity trail across all modules
-- **Real-time broadcasting** — powered by Laravel Reverb (WebSockets)
-- **Notification system** — in-app notifications
-- **Reports** — exportable reports per module
+### Authentication & Access Control
+- **Multi-role authentication** — login, registration, password reset, and email verification with session-based access
+- **Role-based access control (RBAC)** — four distinct roles (Admin, Manager, Driver, Client) gated by role middleware and Laravel policies
+- **User administration & approval** — admin user lifecycle management, bulk approval, status toggles, and self-deactivation safeguards
+- **Profile, company & security preferences** — per-role profile editing, password updates (with current-password verification), session/device force-termination, and company identity settings
+- **Audit & login monitoring** — full activity trail across all modules plus recorded login successes/failures for traceability
+
+### Trip Operations
+- **End-to-end trip lifecycle** — create, assign, and manage trips through a controlled status flow (`created → in_progress → completed / cancelled`)
+- **Driver field operations** — drivers execute assigned trips: log expenses, record reloads, and submit GPS location from the field
+- **Live vehicle tracking** — real-time GPS location submission via driver API with current location and historical position tracking
+- **Trip expenses** — driver-entered expenses with manager/admin approval and rejection workflow
+
+### Fleet & Client Management
+- **Truck fleet management** — truck registry, status, and availability controls with ownership-checked updates
+- **Driver management** — create, approve, activate, and maintain drivers used in trip assignment
+- **Client management** — manage transport clients and operational profiles used in trip creation and billing
+
+### Client Portal
+- **Client dashboard** — role-specific snapshot of outstanding balances, recent payments, and linked trips
+- **Online self-service payments** — clients can view pending trip dues and pay directly from the portal
+
+### Financial Modules
+- **Invoicing** — generate trip invoices (blocked for already-invoiced trips) with synchronized due records
+- **Payments** — record and reconcile payments; due amounts are recalculated automatically as payments arrive
+- **Due management** — dedicated due-record tracking with remaining-due recalculation and settled status
+- **Expenses** — trip expense approval/rejection with profit and due calculations
+- **Cashbook ledger** — credit/debit ledger entries generated automatically from trip payments, expenses, and spare-part sales
+- **Spare parts inventory & sales** — stock management, part sales with atomic stock decrement, low-stock threshold alerts, and automatic cashbook credit entries
+
+### Payment Gateway
+- **Pluggable payment gateway factory** — unified `PaymentGatewayFactory` supporting multiple providers
+- **bKash integration** — client-facing online bKash checkout with initiate/callback flow, transaction verification, and provider references
+- **SSLCommerz integration** — additional online payment gateway provider
+- **Offline/manual collection** — fallback offline gateway for manual payment recording (disabled in the client self-service checkout for traceability)
+- **Secure, traceable transactions** — payment attempts, webhook records, and provider references stored against each payment
+
+### Real-Time & Notifications
+- **Real-time broadcasting** — powered by Laravel Reverb (WebSockets) for live updates
+- **Notification system** — in-app notifications triggered by trip status changes and low-stock transitions
+- **Multi-channel communication** — queued Email, In-App, Push, SMS, and WhatsApp messaging via a dedicated Communication module
+
+### Analytics & Reporting
+- **Role-based dashboards** — operational KPI snapshots tailored to Admin, Manager, Driver, and Client views
+- **Reporting** — generate and download operational and financial reports (admin-controlled scope)
 
 ---
 
