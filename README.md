@@ -100,7 +100,7 @@ No local PHP, Node, or Composer installation is required.
 
 ```bash
 git clone https://github.com/funkyd3v/smart-transport-management-system.git
-cd transport-management-system
+cd smart-transport-management-system
 ```
 
 ### 2. Copy the environment file
